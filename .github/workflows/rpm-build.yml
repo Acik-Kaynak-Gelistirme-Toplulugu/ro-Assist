@@ -138,6 +138,18 @@ jobs:
           if [ -n "${{ github.event.inputs.release_tag }}" ]; then
             tag_name="${{ github.event.inputs.release_tag }}"
           fi
+
+          if ! gh release view "$tag_name" >/dev/null 2>&1; then
+            if git ls-remote --exit-code --tags "https://github.com/${GH_REPO}.git" "refs/tags/${tag_name}" >/dev/null 2>&1; then
+              gh release create "$tag_name" \
+                --title "$tag_name" \
+                --generate-notes
+            else
+              echo "::error::Tag '${tag_name}' does not exist in ${GH_REPO}, so a release cannot be created."
+              exit 1
+            fi
+          fi
+
           gh release upload "$tag_name" \
             release-assets/x64/*.rpm \
             release-assets/arm64/*.rpm \
