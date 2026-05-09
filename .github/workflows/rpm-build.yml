@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing release tag to upload RPM assets to (example: v0.1.2)
+        description: "Existing release tag to upload RPM assets to (example: v0.1.2)"
         required: false
         type: string
   push:
