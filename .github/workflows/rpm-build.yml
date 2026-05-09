@@ -58,11 +58,14 @@ jobs:
           cpack -G RPM --config build/ninja/CPackConfig.cmake
 
       - name: Validate Fedora 43 RPM install path
-        run: packaging/scripts/validate-fedora-rpm.sh build/ninja/*.rpm
+        run: |
+          rpm_path="$(find build/ninja/packages -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
+          test -n "$rpm_path"
+          packaging/scripts/validate-fedora-rpm.sh "$rpm_path"
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
           name: ro-assist-${{ matrix.arch }}
-          path: build/ninja/*.rpm
+          path: build/ninja/packages/*.rpm
           if-no-files-found: error

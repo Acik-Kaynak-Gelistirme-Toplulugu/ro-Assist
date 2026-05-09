@@ -91,6 +91,10 @@ Katkilar memnuniyetle karsilanir. Pull request acmadan once `CONTRIBUTING.md` do
 
 Bu proje `CODE_OF_CONDUCT.md` dosyasindaki davranis kurallarini takip eder.
 
+## Guvenlik
+
+Guvenlik bildirimi sureci `SECURITY.md` dosyasinda tanimlidir.
+
 ## Lisans
 
 Bu proje GPL-3.0-or-later ile lisanslanmistir. Ayrintilar icin `LICENSE` dosyasina bakin.

@@ -74,5 +74,7 @@ set(CPACK_PACKAGE_VERSION "0.1.0")
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <mutemet91@gmail.com>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fedora Linux Sistem Asistanı")
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
+set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
 
 include(CPack)

@@ -91,6 +91,10 @@ Contributions are welcome. Please read `CONTRIBUTING.md` before opening a pull r
 
 This project follows the code of conduct in `CODE_OF_CONDUCT.md`.
 
+## Security
+
+Security reporting guidance is available in `SECURITY.md`.
+
 ## License
 
 This project is licensed under GPL-3.0-or-later. See `LICENSE` for details.
