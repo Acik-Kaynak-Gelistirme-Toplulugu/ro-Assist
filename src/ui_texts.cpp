@@ -45,9 +45,9 @@ Bundle buildBundle(const QString &languageCode, bool darkTheme,
                                      : QStringLiteral("Mostrar Registros ⬇"))
                : (libraryLogsVisible ? QStringLiteral("Hide ⬆")
                                      : QStringLiteral("Show Logs ⬇")));
-  bundle.versionLabel = tr ? QStringLiteral("Mevcut Sürüm: 0.1.0")
-                           : (es ? QStringLiteral("Versión Actual: 0.1.0")
-                                 : QStringLiteral("Current Version: 0.1.0"));
+  bundle.versionLabel = tr ? QStringLiteral("Mevcut Sürüm: 0.1.1")
+                           : (es ? QStringLiteral("Versión Actual: 0.1.1")
+                                 : QStringLiteral("Current Version: 0.1.1"));
   bundle.updateButton = tr ? QStringLiteral("Sistemi Güncelle")
                            : (es ? QStringLiteral("Actualizar Sistema")
                                  : QStringLiteral("Update System"));

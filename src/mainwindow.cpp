@@ -237,7 +237,7 @@ void MainWindow::setupUi() {
   QVBoxLayout *panelLayout = new QVBoxLayout(updatePanel);
   panelLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
-  versionLabel = new QLabel("0.1.0", this);
+  versionLabel = new QLabel("0.1.1", this);
   versionLabel->setAlignment(Qt::AlignCenter);
   versionLabel->setObjectName("versionLabel");
   statusLabel = new QLabel("", this);

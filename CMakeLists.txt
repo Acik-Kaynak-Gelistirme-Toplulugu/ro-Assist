@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ro-assist VERSION 0.1.0 LANGUAGES CXX)
+project(ro-assist VERSION 0.1.1 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -70,11 +70,19 @@ set_tests_properties(ro-assist-smoke-test PROPERTIES
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "ro-assist")
-set(CPACK_PACKAGE_VERSION "0.1.0")
+set(CPACK_PACKAGE_VERSION "0.1.1")
 set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <mutemet91@gmail.com>")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fedora Linux Sistem Asistanı")
+set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <ebubekir.bulut99@gmail.com>")
+set(CPACK_PACKAGE_VENDOR "Project Ro-ASD")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Project-Ro-ASD/ro-Assist")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ro-ASD update and maintenance assistant")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
 set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
+set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0-or-later")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
+set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
+set(CPACK_RPM_PACKAGE_DESCRIPTION "ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 
 include(CPack)

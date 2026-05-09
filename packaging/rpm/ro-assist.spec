@@ -1,5 +1,5 @@
 Name:           ro-assist
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Fedora Linux Sistem Asistanı
 ExclusiveArch:  x86_64 aarch64
@@ -35,5 +35,8 @@ ro-Assist is a system management and update assistant for Linux systems, designe
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
+* Sat May 09 2026 Ebubekir Bulut <ebubekir.bulut99@gmail.com> - 0.1.1-1
+- Refresh package metadata shown in Discover, including author, license, and descriptions.
+
 * Sat Mar 07 2026 Ebubekir Bulut <mutemet91@gmail.com> - 0.1.0-1
 - Initial release with 60% carousel, dynamically managed DNF/Flatpak/Snap updates, language and theme detecting modules.
