@@ -1,4 +1,5 @@
 build/
+build-*/
 *.user
 .qtc_clf/
 .vscode/*

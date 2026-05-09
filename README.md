@@ -36,25 +36,29 @@ sudo dnf install cmake gcc-c++ qt6-qtbase-devel
 ## Build
 
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake --preset default
+cmake --build --preset default
 ```
 
 ## Test
 
 ```bash
-ctest --test-dir build --output-on-failure
+ctest --preset default
 ```
 
 ## Run
 
 ```bash
-./build/ro-assist
+./build/ninja/ro-assist
 ```
 
 ## Packaging
 
 RPM metadata is configured in both `CMakeLists.txt` (CPack) and `packaging/rpm/ro-assist.spec`.
+
+GitHub Actions produces separate Linux RPM artifacts with clear names:
+- `ro-assist-linux-rpm-x64`
+- `ro-assist-linux-rpm-arm64`
 
 ## Project Structure
 

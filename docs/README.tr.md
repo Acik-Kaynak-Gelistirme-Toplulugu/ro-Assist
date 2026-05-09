@@ -36,25 +36,29 @@ sudo dnf install cmake gcc-c++ qt6-qtbase-devel
 ## Derleme
 
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake --preset default
+cmake --build --preset default
 ```
 
 ## Test
 
 ```bash
-ctest --test-dir build --output-on-failure
+ctest --preset default
 ```
 
 ## Calistirma
 
 ```bash
-./build/ro-assist
+./build/ninja/ro-assist
 ```
 
 ## Paketleme
 
 RPM metaverisi hem `CMakeLists.txt` (CPack) hem de `packaging/rpm/ro-assist.spec` dosyasinda tanimlidir.
+
+GitHub Actions, daha anlasilir adlarla ayri Linux RPM ciktilari uretir:
+- `ro-assist-linux-rpm-x64`
+- `ro-assist-linux-rpm-arm64`
 
 ## Proje Yapisi
 

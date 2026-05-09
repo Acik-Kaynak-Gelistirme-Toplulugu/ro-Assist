@@ -1,4 +1,4 @@
-name: Fedora RPM Build
+name: Build RPM Packages
 
 on:
   workflow_dispatch:
@@ -9,10 +9,28 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: rpm-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-rpm:
-    runs-on: ubuntu-latest
+    name: Build RPM package (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     container: fedora:latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout
@@ -30,18 +48,17 @@ jobs:
             qt6-qtbase-devel
 
       - name: Build and package
-        env:
-          QT_QPA_PLATFORM: offscreen
-          RO_ASSIST_SKIP_SYSTEM_CHECKS: "1"
         run: |
-          cmake -S . -B build -G Ninja
-          cmake --build build
-          ctest --test-dir build --output-on-failure
-          cpack -G RPM
+          cmake --preset ci
+          cmake --build --preset ci
+          ctest --preset ci
+          desktop-file-validate packaging/linux/ro-assist.desktop
+          appstreamcli validate packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
+          cpack -G RPM --config build/ninja/CPackConfig.cmake
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ro-assist-fedora-rpm
-          path: build/*.rpm
+          name: ro-assist-linux-rpm-${{ matrix.arch }}
+          path: build/ninja/*.rpm
           if-no-files-found: error

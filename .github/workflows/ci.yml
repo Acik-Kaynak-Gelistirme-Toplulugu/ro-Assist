@@ -1,4 +1,4 @@
-name: CI
+name: Build and Test
 
 on:
   push:
@@ -7,10 +7,28 @@ on:
       - master
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    name: Validate desktop build (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     container: fedora:latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout
@@ -27,16 +45,13 @@ jobs:
             appstream
 
       - name: Configure
-        run: cmake -S . -B build -G Ninja
+        run: cmake --preset ci
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build --preset ci
 
       - name: Run tests
-        env:
-          QT_QPA_PLATFORM: offscreen
-          RO_ASSIST_SKIP_SYSTEM_CHECKS: "1"
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --preset ci
 
       - name: Validate desktop entry
         run: desktop-file-validate packaging/linux/ro-assist.desktop
