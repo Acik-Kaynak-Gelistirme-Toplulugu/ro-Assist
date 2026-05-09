@@ -20,7 +20,7 @@ jobs:
   build-rpm:
     name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:42
+    container: fedora:41
     timeout-minutes: 45
 
     strategy:
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -58,7 +58,7 @@ jobs:
           cpack -G RPM --config build/ninja/CPackConfig.cmake
 
       - name: Upload RPM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ro-assist-${{ matrix.arch }}
           path: build/ninja/packages/*.rpm
@@ -82,7 +82,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install validation dependencies
         run: |
@@ -92,7 +92,7 @@ jobs:
             qt6-qtbase
 
       - name: Download RPM artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ro-assist-${{ matrix.arch }}
           path: artifact-rpm

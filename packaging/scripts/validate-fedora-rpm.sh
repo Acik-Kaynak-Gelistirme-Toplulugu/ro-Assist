@@ -44,8 +44,11 @@ fi
 
 dnf -y --refresh --setopt=install_weak_deps=False install ro-assist
 rpm -q ro-assist
-command -v ro-assist
+binary_path="$(command -v ro-assist)"
+printf '%s\n' "$binary_path"
+test -n "$binary_path"
 test -x /usr/bin/ro-assist
+test "$(realpath "$binary_path")" = "/usr/bin/ro-assist"
 test -f /etc/xdg/autostart/ro-assist-autostart.desktop
 ldd -r /usr/bin/ro-assist
 

@@ -56,7 +56,7 @@ ctest --preset default
 
 RPM metaverisi hem `CMakeLists.txt` (CPack) hem de `packaging/rpm/ro-assist.spec` dosyasinda tanimlidir.
 
-GitHub Actions, RPM paketlerini uyumluluk tabaninda derler ve Fedora 43 uzerinde dogrular. Iki sade cikti uretir:
+GitHub Actions, RPM paketlerini Fedora 41 uyumluluk tabaninda derler ve Fedora 43 uzerinde dogrular. Iki sade cikti uretir:
 - `ro-assist-x64`
 - `ro-assist-arm64`
 

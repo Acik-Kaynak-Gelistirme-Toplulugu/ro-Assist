@@ -56,7 +56,7 @@ ctest --preset default
 
 RPM metadata is configured in both `CMakeLists.txt` (CPack) and `packaging/rpm/ro-assist.spec`.
 
-GitHub Actions builds RPMs on a compatibility baseline and validates them on Fedora 43. It produces two simple RPM artifacts:
+GitHub Actions builds RPMs on a Fedora 41 compatibility baseline and validates them on Fedora 43. It produces two simple RPM artifacts:
 - `ro-assist-x64`
 - `ro-assist-arm64`
 
