@@ -9,7 +9,7 @@ Closes #
 ## Testing
 
 - [ ] Build succeeds (`cmake -S . -B build && cmake --build build`)
-- [ ] Manual run tested (`./build/ro-assist`)
+- [ ] Manual run tested (`./build/ninja/ro-assist`)
 
 ## Notes
 

@@ -3,15 +3,15 @@
 Dil: Turkce | [English](../README.md)
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Fedora_Linux-green.svg)
+![Platform](https://img.shields.io/badge/platform-Fedora_43_KDE-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
-ro-Assist, ozellikle Fedora KDE Plasma sistemleri icin gelistirilmis Qt6 tabanli bir masaustu yardimcisidir. Guncelleme islemlerini calistirir ve mumkun oldugunca masaustu ile uyumlu davranis koruyarak ilerleme durumunu sade bir arayuzde gosterir.
+ro-Assist, ozellikle Fedora 43 KDE Plasma sistemleri icin gelistirilmis Qt6 tabanli bir masaustu yardimcisidir. Guncelleme islemlerini calistirir ve mumkun oldugunca masaustu ile uyumlu davranis koruyarak ilerleme durumunu sade bir arayuzde gosterir.
 
 ## Ozellikler
 
 - Komut ciktilarini ayrisarak gercek zamanli guncelleme ilerlemesi gosterebilir.
-- Fedora KDE Plasma hedefi icin uyarlanmis Qt6 tabanli masaustu arayuzu.
+- Fedora 43 KDE Plasma hedefi icin uyarlanmis Qt6 tabanli masaustu arayuzu.
 - Fedora odakli paket yonetimi is akislarina entegrasyon.
 - KDE icinde calisirken Breeze stil ve tema ikon entegrasyonu.
 
@@ -27,7 +27,7 @@ ro-Assist, ozellikle Fedora KDE Plasma sistemleri icin gelistirilmis Qt6 tabanli
 - C++17 uyumlu derleyici (`gcc` veya `clang`)
 - Qt6 gelistirme paketleri
 
-Fedora ornegi:
+Fedora 43 ornegi:
 
 ```bash
 sudo dnf install cmake gcc-c++ qt6-qtbase-devel
@@ -56,9 +56,17 @@ ctest --preset default
 
 RPM metaverisi hem `CMakeLists.txt` (CPack) hem de `packaging/rpm/ro-assist.spec` dosyasinda tanimlidir.
 
-GitHub Actions, daha anlasilir adlarla ayri Linux RPM ciktilari uretir:
-- `ro-assist-linux-rpm-x64`
-- `ro-assist-linux-rpm-arm64`
+GitHub Actions, Fedora 43 uzerinde iki sade RPM ciktisi uretir:
+- `ro-assist-x64`
+- `ro-assist-arm64`
+
+RPM workflow su kontrolleri de zorunlu olarak yapar:
+- uretilen repo uzerinden `dnf install ro-assist`
+- `/usr/bin/ro-assist` dogrulamasi
+- `ldd -r /usr/bin/ro-assist`
+- `Qt_6.10` ve `Qt_6.10_PRIVATE_API` bagimlilik denetimi
+
+Paket, Fedora 43 KDE uzerinde ilk oturum acilisinda `ro-assist --autostart` calistiran bir autostart girdisi de icerir. Uygulama bu acilisi yalnizca ilk giriste gosterir.
 
 ## Proje Yapisi
 

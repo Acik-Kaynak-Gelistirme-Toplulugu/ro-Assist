@@ -31,6 +31,8 @@ target_link_libraries(ro-assist PRIVATE Qt6::Widgets Qt6::Network)
 install(TARGETS ro-assist RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES packaging/linux/ro-assist.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES packaging/linux/ro-assist-autostart.desktop
+        DESTINATION /etc/xdg/autostart)
 install(FILES packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
 install(FILES resources/icons/ro-assist.svg

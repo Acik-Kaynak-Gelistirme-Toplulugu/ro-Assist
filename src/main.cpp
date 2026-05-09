@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QIcon>
+#include <QSettings>
 #include <QStyleFactory>
 #include <QTimer>
 
@@ -33,6 +34,19 @@ void configureDesktopIntegration(QApplication &app)
     }
 }
 
+bool hasCompletedAutostartWelcome()
+{
+    QSettings settings;
+    return settings.value(QStringLiteral("autostart/welcomeShown"), false).toBool();
+}
+
+void markAutostartWelcomeCompleted()
+{
+    QSettings settings;
+    settings.setValue(QStringLiteral("autostart/welcomeShown"), true);
+    settings.sync();
+}
+
 } // namespace
 
 int main(int argc, char *argv[])
@@ -44,12 +58,22 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription("Fedora KDE desktop assistant for system maintenance");
     parser.addHelpOption();
     parser.addVersionOption();
+    QCommandLineOption autostartOption("autostart", "Launch from the desktop autostart entry.");
     QCommandLineOption smokeTestOption("smoke-test", "Create the UI and exit immediately.");
+    parser.addOption(autostartOption);
     parser.addOption(smokeTestOption);
     parser.process(a);
 
+    if (parser.isSet(autostartOption) && hasCompletedAutostartWelcome()) {
+        return 0;
+    }
+
     MainWindow w;
     w.show();
+
+    if (parser.isSet(autostartOption)) {
+        markAutostartWelcomeCompleted();
+    }
 
     if (parser.isSet(smokeTestOption)) {
         QTimer::singleShot(0, &a, &QCoreApplication::quit);

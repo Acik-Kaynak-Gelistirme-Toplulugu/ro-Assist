@@ -3,15 +3,15 @@
 Language: English | [Turkish](docs/README.tr.md)
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Fedora_Linux-green.svg)
+![Platform](https://img.shields.io/badge/platform-Fedora_43_KDE-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
-ro-Assist is a Qt6 desktop assistant built specifically for Fedora KDE Plasma systems. It executes update workflows and reports progress through a simple GUI while preserving native desktop behavior where possible.
+ro-Assist is a Qt6 desktop assistant built specifically for Fedora 43 KDE Plasma systems. It executes update workflows and reports progress through a simple GUI while preserving native desktop behavior where possible.
 
 ## Features
 
 - Real-time update progress tracking from command output parsing.
-- Qt6-based desktop interface tuned for Fedora KDE Plasma.
+- Qt6-based desktop interface tuned for Fedora 43 KDE Plasma.
 - Package management integration centered on Fedora workflows.
 - Breeze style and themed icon integration when running inside KDE.
 
@@ -27,7 +27,7 @@ ro-Assist is a Qt6 desktop assistant built specifically for Fedora KDE Plasma sy
 - C++17 compatible compiler (`gcc` or `clang`)
 - Qt6 development packages
 
-Fedora example:
+Fedora 43 example:
 
 ```bash
 sudo dnf install cmake gcc-c++ qt6-qtbase-devel
@@ -56,9 +56,17 @@ ctest --preset default
 
 RPM metadata is configured in both `CMakeLists.txt` (CPack) and `packaging/rpm/ro-assist.spec`.
 
-GitHub Actions produces separate Linux RPM artifacts with clear names:
-- `ro-assist-linux-rpm-x64`
-- `ro-assist-linux-rpm-arm64`
+GitHub Actions builds on Fedora 43 and produces two simple RPM artifacts:
+- `ro-assist-x64`
+- `ro-assist-arm64`
+
+The RPM workflow also verifies that:
+- `dnf install ro-assist` works from a generated repository
+- `/usr/bin/ro-assist` is present
+- `ldd -r /usr/bin/ro-assist` resolves
+- RPM requirements do not contain `Qt_6.10` or `Qt_6.10_PRIVATE_API`
+
+When installed on Fedora 43 KDE, the package also ships an autostart entry that launches `ro-assist --autostart` on the first login only.
 
 ## Project Structure
 

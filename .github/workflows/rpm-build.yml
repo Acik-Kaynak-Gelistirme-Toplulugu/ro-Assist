@@ -18,9 +18,9 @@ concurrency:
 
 jobs:
   build-rpm:
-    name: Build RPM package (${{ matrix.arch }})
+    name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:latest
+    container: fedora:43
     timeout-minutes: 45
 
     strategy:
@@ -43,11 +43,12 @@ jobs:
             cmake \
             ninja-build \
             rpm-build \
+            createrepo_c \
             desktop-file-utils \
             appstream \
             qt6-qtbase-devel
 
-      - name: Build and package
+      - name: Build package
         run: |
           cmake --preset ci
           cmake --build --preset ci
@@ -56,9 +57,12 @@ jobs:
           appstreamcli validate packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
           cpack -G RPM --config build/ninja/CPackConfig.cmake
 
+      - name: Validate Fedora 43 RPM install path
+        run: packaging/scripts/validate-fedora-rpm.sh build/ninja/*.rpm
+
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ro-assist-linux-rpm-${{ matrix.arch }}
+          name: ro-assist-${{ matrix.arch }}
           path: build/ninja/*.rpm
           if-no-files-found: error

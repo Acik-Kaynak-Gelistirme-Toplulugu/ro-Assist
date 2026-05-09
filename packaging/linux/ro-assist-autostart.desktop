@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=ro-Assist Welcome
+Comment=Launch ro-Assist automatically on the first KDE login
+Exec=ro-assist --autostart
+Icon=ro-assist
+Terminal=false
+OnlyShowIn=KDE;
+NoDisplay=true
+StartupNotify=false
+X-KDE-autostart-after=panel
