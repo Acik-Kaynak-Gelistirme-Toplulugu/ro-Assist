@@ -131,6 +131,7 @@ jobs:
       - name: Publish RPM assets to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           tag_name="${GITHUB_REF_NAME}"
           if [ -n "${{ github.event.inputs.release_tag }}" ]; then
