@@ -1,7 +1,8 @@
 build/
 *.user
 .qtc_clf/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 ro-assist
 *.o
 moc_*.cpp

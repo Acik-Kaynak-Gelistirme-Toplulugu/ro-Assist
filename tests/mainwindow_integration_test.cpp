@@ -22,7 +22,7 @@ void MainWindowIntegrationTest::languageSwitchUpdatesPrimaryTexts()
 {
     MainWindow window;
     auto *languageButton = window.findChild<QPushButton *>("languageButton");
-    auto *updateButton = window.findChild<QPushButton *>("updateButton");
+    auto *updateButton = window.findChild<QPushButton *>("systemUpdateButton");
     QVERIFY(languageButton);
     QVERIFY(updateButton);
 

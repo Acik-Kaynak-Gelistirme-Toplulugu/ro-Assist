@@ -247,7 +247,7 @@ void MainWindow::setupUi() {
   statusLabel->setMinimumWidth(400);
 
   updateButton = new QPushButton(this);
-  updateButton->setObjectName("updateButton");
+  updateButton->setObjectName("systemUpdateButton");
   updateButton->setFixedSize(320, 70);
   updateButton->setCursor(Qt::PointingHandCursor);
   connect(updateButton, &QPushButton::clicked, this, &MainWindow::startUpdate);
@@ -314,7 +314,7 @@ void MainWindow::setupUi() {
   libraryStatusLabel->setMinimumWidth(400);
 
   libraryInstallButton = new QPushButton(this);
-  libraryInstallButton->setObjectName("updateButton");
+  libraryInstallButton->setObjectName("libraryInstallButton");
   libraryInstallButton->setFixedSize(320, 70);
   libraryInstallButton->setCursor(Qt::PointingHandCursor);
   connect(libraryInstallButton, &QPushButton::clicked, this,
@@ -612,13 +612,18 @@ void MainWindow::updateUiTextAndImages() {
   slide5Title->setText(bundle.slide5Title);
   slide5Desc->setText(bundle.slide5Description);
   libraryPackageSlideBtn->setText(bundle.librarySlideButton);
-  libraryStatusLabel->setText(bundle.libraryStatusIdle);
+  if (activeOperation != LibraryInstall) {
+    libraryStatusLabel->setText(bundle.libraryStatusIdle);
+  }
   logConsole->setPlaceholderText(bundle.logPlaceholder);
   libraryLogConsole->setPlaceholderText(bundle.logPlaceholder);
   roAsdGitHubBtn->setText("ro-ASD OS\nRepo");
   roAssistGitHubBtn->setText("ro-Assist\nRepo");
   websiteBtn->setText(bundle.websiteButton);
-  libraryInstallButton->setText(bundle.libraryActionButton);
+  if (activeOperation != LibraryInstall &&
+      checkLibProcess->state() == QProcess::NotRunning) {
+    libraryInstallButton->setText(bundle.libraryActionButton);
+  }
 
   setInitialUpdateStatus();
 }
@@ -677,15 +682,15 @@ void MainWindow::setupStyle() {
         }
         QPushButton#backButton:hover { border: 1px solid %7; color: %7; }
         
-        QPushButton#updateButton, QPushButton#actionButton { 
+        QPushButton#systemUpdateButton, QPushButton#libraryInstallButton, QPushButton#actionButton { 
             background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 %7, stop:1 %8); 
             color: white; border: none; font-size: 18px; font-weight: 700; border-radius: 14px; 
             padding: 12px;
         }
-        QPushButton#updateButton:hover, QPushButton#actionButton:hover { 
+        QPushButton#systemUpdateButton:hover, QPushButton#libraryInstallButton:hover, QPushButton#actionButton:hover { 
             background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 %9, stop:1 %7); 
         }
-        QPushButton#updateButton:disabled, QPushButton#actionButton:disabled { 
+        QPushButton#systemUpdateButton:disabled, QPushButton#libraryInstallButton:disabled, QPushButton#actionButton:disabled { 
             background: %5; color: %4; 
         }
         
@@ -749,6 +754,13 @@ void MainWindow::showLibraryScreen() {
                                       << "vulkan-loader" << "vulkan-tools");
   } else if (!qEnvironmentVariableIsEmpty("RO_ASSIST_SKIP_SYSTEM_CHECKS")) {
     libraryInstallButton->setEnabled(true);
+    libraryInstallButton->setText(RoAssist::UiTexts::buildBundle(
+                                      currentLanguageCode(),
+                                      currentTheme == Dark,
+                                      logConsole->isVisible(),
+                                      libraryLogConsole->isVisible(),
+                                      isLibraryInstalled)
+                                      .libraryActionButton);
   }
 }
 void MainWindow::showAppStoreScreen() {
