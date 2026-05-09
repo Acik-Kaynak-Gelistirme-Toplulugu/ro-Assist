@@ -1,18 +1,19 @@
 # ro-Assist
 
-Language: English | [Turkish](README.tr.md)
+Language: English | [Turkish](docs/README.tr.md)
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Fedora_Linux-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
-ro-Assist is a Qt6 desktop assistant focused on Fedora system maintenance. It executes update workflows and reports progress through a simple GUI.
+ro-Assist is a Qt6 desktop assistant built specifically for Fedora KDE Plasma systems. It executes update workflows and reports progress through a simple GUI while preserving native desktop behavior where possible.
 
 ## Features
 
 - Real-time update progress tracking from command output parsing.
-- Qt6-based desktop interface with custom styling.
+- Qt6-based desktop interface tuned for Fedora KDE Plasma.
 - Package management integration centered on Fedora workflows.
+- Breeze style and themed icon integration when running inside KDE.
 
 ## Tech Stack
 
@@ -39,6 +40,12 @@ cmake -S . -B build
 cmake --build build
 ```
 
+## Test
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+
 ## Run
 
 ```bash
@@ -47,17 +54,18 @@ cmake --build build
 
 ## Packaging
 
-RPM metadata is configured in both `CMakeLists.txt` (CPack) and `ro-assist.spec`.
+RPM metadata is configured in both `CMakeLists.txt` (CPack) and `packaging/rpm/ro-assist.spec`.
 
 ## Project Structure
 
 ```text
 .
+|- docs/
+|- include/roassist/
+|- packaging/rpm/
+|- resources/icons/
+|- src/
 |- CMakeLists.txt
-|- main.cpp
-|- mainwindow.cpp
-|- mainwindow.h
-|- ro-assist.spec
 `- .github/
 ```
 

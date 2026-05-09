@@ -13,7 +13,6 @@
 #include <QNetworkInformation>
 #include <QMenu>
 #include <QAction>
-#include <QTimer>
 #include <QColor>
 
 class MainWindow : public QMainWindow
@@ -23,6 +22,7 @@ class MainWindow : public QMainWindow
 public:
     enum Language { TR, EN, ES };
     enum Theme { Light, Dark };
+    enum OperationType { None, SystemUpdate, LibraryInstall };
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -69,6 +69,10 @@ private:
     void detectSystemLanguageAndTheme();
     void appendLog(const QString &text, const QString &color = "#666666");
     void setInitialUpdateStatus();
+    void setOperationRunning(OperationType operation);
+    void clearActiveOperation();
+    bool isOperationRunning() const;
+    bool isLibraryOperationActive() const;
 
     QLabel *versionLabel;
     QLabel *statusLabel;
@@ -142,8 +146,8 @@ private:
     // State
     Language currentLang;
     Theme currentTheme;
+    OperationType activeOperation;
     bool transactionPhaseStarted;
-    bool isUpToDate;
     bool isTerminatingIntentionally;
     bool isNetworkConnected;
     bool isLibraryInstalled;

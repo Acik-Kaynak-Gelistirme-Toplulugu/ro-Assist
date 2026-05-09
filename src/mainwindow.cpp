@@ -1,4 +1,6 @@
-#include "mainwindow.h"
+#include "roassist/mainwindow.h"
+#include "roassist/update_helpers.h"
+
 #include <QDebug>
 #include <QDesktopServices>
 #include <QDialog>
@@ -9,7 +11,6 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QPalette>
-#include <QRegularExpression>
 #include <QScreen>
 #include <QScrollBar>
 #include <QStyleHints>
@@ -21,8 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
       checkUpdateProcess(new QProcess(this)),
       checkLibProcess(new QProcess(this)), carousel(new QStackedWidget(this)),
       carouselTimer(new QTimer(this)), logConsole(new QTextEdit(this)),
-      libraryLogConsole(new QTextEdit(this)), transactionPhaseStarted(false),
-      isUpToDate(false), isTerminatingIntentionally(false),
+      libraryLogConsole(new QTextEdit(this)), activeOperation(None),
+      transactionPhaseStarted(false), isTerminatingIntentionally(false),
       isNetworkConnected(true), isLibraryInstalled(false),
       accentColor(QColor("#0066cc")) {
   detectSystemLanguageAndTheme();
@@ -87,6 +88,31 @@ MainWindow::~MainWindow() {
     checkUpdateProcess->kill();
     checkUpdateProcess->waitForFinished(1000);
   }
+  if (checkLibProcess && checkLibProcess->state() != QProcess::NotRunning) {
+    checkLibProcess->kill();
+    checkLibProcess->waitForFinished(1000);
+  }
+}
+
+void MainWindow::setOperationRunning(OperationType operation) {
+  activeOperation = operation;
+  transactionPhaseStarted = false;
+  isTerminatingIntentionally = false;
+}
+
+void MainWindow::clearActiveOperation() {
+  activeOperation = None;
+  transactionPhaseStarted = false;
+  isTerminatingIntentionally = false;
+}
+
+bool MainWindow::isOperationRunning() const {
+  return activeOperation != None ||
+         updateProcess->state() != QProcess::NotRunning;
+}
+
+bool MainWindow::isLibraryOperationActive() const {
+  return activeOperation == LibraryInstall;
 }
 
 void MainWindow::detectSystemLanguageAndTheme() {
@@ -706,7 +732,7 @@ void MainWindow::setupStyle() {
 
   QString style =
       QString(R"(
-        * { font-family: 'Segoe UI', 'Inter', 'Roboto', sans-serif; outline: none; }
+        * { outline: none; }
         QMainWindow { background-color: %1; }
         QWidget#panelWidget { 
             background-color: transparent; 
@@ -970,6 +996,17 @@ void MainWindow::startLibraryPackageInstall() {
                                                : "No internet connection!"));
     return;
   }
+  if (isOperationRunning()) {
+    QMessageBox::information(
+        this,
+        currentLang == TR ? "Bilgi" : (currentLang == ES ? "Información" : "Info"),
+        currentLang == TR
+            ? "Başka bir işlem zaten çalışıyor."
+            : (currentLang == ES ? "Ya hay otro proceso en ejecución."
+                                 : "Another operation is already running."));
+    return;
+  }
+
   libraryInstallButton->setEnabled(false);
   libraryProgressBar->setRange(0, 100);
   libraryProgressBar->setValue(0);
@@ -984,13 +1021,7 @@ void MainWindow::startLibraryPackageInstall() {
                               : (currentLang == ES ? "Instalando bibliotecas..."
                                                    : "Installing libraries..."),
             "#0066cc");
-
-  if (updateProcess->state() != QProcess::NotRunning)
-    return;
-
-  transactionPhaseStarted = false;
-  isUpToDate = false;
-  isTerminatingIntentionally = false;
+  setOperationRunning(LibraryInstall);
 
   QString action = isLibraryInstalled ? "upgrade" : "install";
   updateProcess->start("pkexec", QStringList()
@@ -1009,6 +1040,17 @@ void MainWindow::startUpdate() {
                                                : "No internet connection!"));
     return;
   }
+  if (isOperationRunning()) {
+    QMessageBox::information(
+        this,
+        currentLang == TR ? "Bilgi" : (currentLang == ES ? "Información" : "Info"),
+        currentLang == TR
+            ? "Başka bir işlem zaten çalışıyor."
+            : (currentLang == ES ? "Ya hay otro proceso en ejecución."
+                                 : "Another operation is already running."));
+    return;
+  }
+
   updateButton->setEnabled(false);
   progressBar->setRange(0, 100);
   progressBar->setValue(0);
@@ -1024,24 +1066,17 @@ void MainWindow::startUpdate() {
                 : (currentLang == ES ? "Comenzando actualización del sistema..."
                                      : "System update starting..."),
             "#0066cc");
+  setOperationRunning(SystemUpdate);
 
-  transactionPhaseStarted = false;
-  isUpToDate = false;
-  isTerminatingIntentionally = false;
-
-  QString cmd =
-      "dnf upgrade -y; "
-      "if command -v flatpak > /dev/null; then flatpak update -y; fi; "
-      "if command -v snap > /dev/null; then snap refresh; fi";
-
-  updateProcess->start("pkexec", QStringList() << "sh" << "-c" << cmd);
+  updateProcess->start("pkexec", QStringList()
+                                     << "sh" << "-c"
+                                     << RoAssist::UpdateHelpers::buildSystemUpdateCommand());
 }
 
 void MainWindow::appendLog(const QString &text, const QString &color) {
   QString formattedText = QString("<span style='color:%1'>%2</span>")
                               .arg(color, text.toHtmlEscaped());
-  int actIdx = mainStack->currentIndex();
-  if (actIdx == 2) {
+  if (isLibraryOperationActive()) {
     libraryLogConsole->append(formattedText);
     QScrollBar *sb = libraryLogConsole->verticalScrollBar();
     sb->setValue(sb->maximum());
@@ -1053,7 +1088,6 @@ void MainWindow::appendLog(const QString &text, const QString &color) {
 }
 
 void MainWindow::checkDnfErrors(const QString &output) {
-  int actIdx = mainStack->currentIndex();
   if (output.contains("Waiting for process", Qt::CaseInsensitive) ||
       output.contains("Another app is currently holding the yum lock",
                       Qt::CaseInsensitive)) {
@@ -1061,7 +1095,7 @@ void MainWindow::checkDnfErrors(const QString &output) {
                       ? "⚠️ Sistem şu an başka bir işlemle meşgul..."
                       : (currentLang == ES ? "⚠️ El sistema está ocupado..."
                                            : "⚠️ System is busy...");
-    if (actIdx == 2)
+    if (isLibraryOperationActive())
       libraryStatusLabel->setText(msg);
     else
       statusLabel->setText(msg);
@@ -1072,7 +1106,7 @@ void MainWindow::checkDnfErrors(const QString &output) {
     QString msg = currentLang == TR ? "🌐 İnternet Hatası"
                                     : (currentLang == ES ? "🌐 Error de red"
                                                          : "🌐 Network Error");
-    if (actIdx == 2) {
+    if (isLibraryOperationActive()) {
       libraryStatusLabel->setText(msg);
       libraryInstallButton->setEnabled(true);
     } else {
@@ -1090,60 +1124,47 @@ void MainWindow::handleUpdateOutput() {
   }
   checkDnfErrors(output);
 
-  if (output.contains("Nothing to do", Qt::CaseInsensitive) ||
-      output.contains("Yapılacak bir şey yok", Qt::CaseInsensitive)) {
-    isUpToDate = true;
+  if (RoAssist::UpdateHelpers::containsNoWorkMarker(output)) {
+    transactionPhaseStarted = true;
   }
 
-  QRegularExpression txRegex("\\((\\d+)/(\\d+)\\)");
-  QRegularExpressionMatchIterator i = txRegex.globalMatch(output);
-  int actIdx = mainStack->currentIndex();
-
-  while (i.hasNext()) {
-    QRegularExpressionMatch match = i.next();
+  if (const auto progress =
+          RoAssist::UpdateHelpers::parseTransactionProgress(output)) {
     transactionPhaseStarted = true;
-    int current = match.captured(1).toInt();
-    int total = match.captured(2).toInt();
     QString t = QString("%1 (%2/%3)")
                     .arg(currentLang == TR
                              ? "Paketler kuruluyor..."
                              : (currentLang == ES ? "Instalando paquetes..."
                                                   : "Installing packages..."))
-                    .arg(current)
-                    .arg(total);
-    if (actIdx == 2) {
-      libraryProgressBar->setRange(0, total);
-      libraryProgressBar->setValue(current);
+                    .arg(progress->current)
+                    .arg(progress->total);
+    if (isLibraryOperationActive()) {
+      libraryProgressBar->setRange(0, progress->total);
+      libraryProgressBar->setValue(progress->current);
       libraryStatusLabel->setText(t);
     } else {
-      progressBar->setRange(0, total);
-      progressBar->setValue(current);
+      progressBar->setRange(0, progress->total);
+      progressBar->setValue(progress->current);
       statusLabel->setText(t);
     }
   }
 
   if (!transactionPhaseStarted) {
-    QRegularExpression dlRegex("(\\d+)%");
-    QRegularExpressionMatchIterator j = dlRegex.globalMatch(output);
-    int lastPercent = -1;
-    while (j.hasNext()) {
-      QRegularExpressionMatch match = j.next();
-      lastPercent = match.captured(1).toInt();
-    }
-    if (lastPercent != -1) {
+    if (const auto percent =
+            RoAssist::UpdateHelpers::parseDownloadPercent(output)) {
       QString t =
           QString("%1 %2%")
               .arg(currentLang == TR ? "İndiriliyor..."
                                      : (currentLang == ES ? "Descargando..."
                                                           : "Downloading..."))
-              .arg(lastPercent);
-      if (actIdx == 2) {
+              .arg(*percent);
+      if (isLibraryOperationActive()) {
         libraryProgressBar->setRange(0, 100);
-        libraryProgressBar->setValue(lastPercent);
+        libraryProgressBar->setValue(*percent);
         libraryStatusLabel->setText(t);
       } else {
         progressBar->setRange(0, 100);
-        progressBar->setValue(lastPercent);
+        progressBar->setValue(*percent);
         statusLabel->setText(t);
       }
     }
@@ -1170,8 +1191,7 @@ void MainWindow::handleUpdateErrorOutput() {
                     ? "❌ Şifre Yanlış!"
                     : (currentLang == ES ? "❌ ¡Contraseña incorrecta!"
                                          : "❌ Wrong Password!");
-    int actIdx = mainStack->currentIndex();
-    if (actIdx == 2) {
+    if (isLibraryOperationActive()) {
       libraryProgressBar->hide();
       libraryProgressBar->setValue(0);
       libraryStatusLabel->setText(t);
@@ -1201,20 +1221,32 @@ void MainWindow::handleCheckUpdateFinished(int exitCode,
                                            QProcess::ExitStatus exitStatus) {
   if (transactionPhaseStarted)
     return;
-  if (exitStatus == QProcess::NormalExit && exitCode == 100) {
+
+  switch (RoAssist::UpdateHelpers::classifyCheckUpdateResult(exitCode,
+                                                             exitStatus)) {
+  case RoAssist::UpdateHelpers::UpdateCheckStatus::UpdatesAvailable:
     if (currentLang == TR)
       statusLabel->setText("Sistem Güncellemesi Mevcut");
     else if (currentLang == ES)
       statusLabel->setText("Actualización del Sistema Disponible");
     else
       statusLabel->setText("System Update Available");
-  } else {
+    break;
+  case RoAssist::UpdateHelpers::UpdateCheckStatus::UpToDate:
     if (currentLang == TR)
       statusLabel->setText("Sisteminiz şu anda güncel!");
     else if (currentLang == ES)
       statusLabel->setText("¡Su sistema está actualizado!");
     else
       statusLabel->setText("Your system is currently up to date!");
+    break;
+  case RoAssist::UpdateHelpers::UpdateCheckStatus::Failed:
+    statusLabel->setText(currentLang == TR
+                             ? "Güncelleme denetimi başarısız oldu."
+                             : (currentLang == ES
+                                    ? "La comprobación de actualizaciones falló."
+                                    : "Update check failed."));
+    break;
   }
 }
 
@@ -1247,10 +1279,11 @@ void MainWindow::handleCheckLibFinished(int exitCode,
 
 void MainWindow::handleUpdateFinished(int exitCode,
                                       QProcess::ExitStatus exitStatus) {
-  int actIdx = mainStack->currentIndex();
-  if (actIdx == 2) {
+  bool libraryOperation = isLibraryOperationActive();
+  if (libraryOperation) {
     libraryInstallButton->setEnabled(true);
     if (exitStatus == QProcess::NormalExit && exitCode == 0) {
+      isLibraryInstalled = true;
       libraryProgressBar->setRange(0, 100);
       libraryProgressBar->setValue(100);
       libraryStatusLabel->setText(
@@ -1262,6 +1295,7 @@ void MainWindow::handleUpdateFinished(int exitCode,
                     : (currentLang == ES ? "Bibliotecas instaladas."
                                          : "Libraries installed."),
                 "#00cc00");
+      updateUiTextAndImages();
     } else {
       if (!isTerminatingIntentionally) {
         libraryProgressBar->hide();
@@ -1311,6 +1345,7 @@ void MainWindow::handleUpdateFinished(int exitCode,
       }
     }
   }
+  clearActiveOperation();
 }
 
 void MainWindow::handleUpdateProcessError(QProcess::ProcessError error) {
@@ -1334,8 +1369,7 @@ void MainWindow::handleUpdateProcessError(QProcess::ProcessError error) {
           : (currentLang == ES ? "Error crítico" : "Critical Error"),
       errorMsg);
 
-  int actIdx = mainStack->currentIndex();
-  if (actIdx == 2) {
+  if (isLibraryOperationActive()) {
     libraryProgressBar->hide();
     libraryInstallButton->setEnabled(true);
     libraryStatusLabel->setText(
@@ -1356,4 +1390,5 @@ void MainWindow::handleUpdateProcessError(QProcess::ProcessError error) {
     if (!logConsole->isVisible())
       toggleUpdateLogs();
   }
+  clearActiveOperation();
 }

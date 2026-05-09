@@ -15,8 +15,17 @@ CMakeFiles/
 cmake_install.cmake
 compile_commands.json
 Makefile
+ro-assist_autogen/
+.qt/
+CPackConfig.cmake
+CPackSourceConfig.cmake
 
 # Packaging artifacts
 *.rpm
 *.tar.gz
 _CPack_Packages/
+
+# Local logs
+build_log.txt
+build_log_new.txt
+latest_build.txt
