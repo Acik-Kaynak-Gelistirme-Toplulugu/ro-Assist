@@ -20,7 +20,7 @@ jobs:
   build-rpm:
     name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:43
+    container: fedora:42
     timeout-minutes: 45
 
     strategy:
@@ -57,15 +57,48 @@ jobs:
           appstreamcli validate packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
           cpack -G RPM --config build/ninja/CPackConfig.cmake
 
-      - name: Validate Fedora 43 RPM install path
-        run: |
-          rpm_path="$(find build/ninja/packages -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
-          test -n "$rpm_path"
-          packaging/scripts/validate-fedora-rpm.sh "$rpm_path"
-
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
           name: ro-assist-${{ matrix.arch }}
           path: build/ninja/packages/*.rpm
           if-no-files-found: error
+
+  validate-rpm:
+    name: validate-ro-assist-${{ matrix.arch }}
+    needs: build-rpm
+    runs-on: ${{ matrix.runner }}
+    container: fedora:43
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install validation dependencies
+        run: |
+          dnf install -y \
+            createrepo_c \
+            rpm-build \
+            qt6-qtbase
+
+      - name: Download RPM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ro-assist-${{ matrix.arch }}
+          path: artifact-rpm
+
+      - name: Validate Fedora 43 RPM install path
+        run: |
+          rpm_path="$(find artifact-rpm -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
+          test -n "$rpm_path"
+          packaging/scripts/validate-fedora-rpm.sh "$rpm_path"

@@ -48,8 +48,9 @@ If `rpm -qpR` shows either of the following, the package is still considered inc
 
 GitHub Actions enforces this policy by:
 
-- building RPM artifacts inside `fedora:43`
+- building RPM artifacts on a Qt baseline older than Fedora 43
 - validating the desktop file and AppStream metadata
+- validating installation inside `fedora:43`
 - creating a temporary repo from the built RPM
 - installing `ro-assist` through `dnf install ro-assist`
 - verifying `/usr/bin/ro-assist`
