@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Existing release tag to upload RPM assets to (example: v0.1.2)"
+        description: >-
+          Existing release tag to upload RPM assets to (example: v0.1.2)
         required: false
         type: string
   push:
@@ -97,7 +98,7 @@ jobs:
             qt6-qtbase
 
       - name: Download RPM artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ro-assist-${{ matrix.arch }}
           path: artifact-rpm
@@ -117,13 +118,13 @@ jobs:
 
     steps:
       - name: Download x64 RPM artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ro-assist-x64
           path: release-assets/x64
 
       - name: Download arm64 RPM artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ro-assist-arm64
           path: release-assets/arm64
