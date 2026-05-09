@@ -24,7 +24,10 @@ void configureDesktopIntegration(QApplication &app)
     }
 #endif
 
-    const QIcon icon = QIcon::fromTheme("system-software-update");
+    QIcon icon = QIcon::fromTheme("system-software-update");
+    if (icon.isNull()) {
+        icon = QIcon(QStringLiteral(":/icons/ro-assist.svg"));
+    }
     if (!icon.isNull()) {
         app.setWindowIcon(icon);
     }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.project_ro_asd.ro_assist</id>
+  <name>ro-Assist</name>
+  <summary>Fedora KDE maintenance assistant</summary>
+  <summary xml:lang="tr">Fedora KDE bakım yardımcısı</summary>
+  <summary xml:lang="es">Asistente de mantenimiento para Fedora KDE</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <launchable type="desktop-id">ro-assist.desktop</launchable>
+  <description>
+    <p>ro-Assist is a Qt desktop application focused on Fedora KDE Plasma system updates and maintenance workflows.</p>
+    <p xml:lang="tr">ro-Assist, Fedora KDE Plasma sistem güncelleme ve bakım iş akışlarına odaklanan bir Qt masaüstü uygulamasıdır.</p>
+    <p xml:lang="es">ro-Assist es una aplicación de escritorio Qt centrada en los flujos de actualización y mantenimiento de Fedora KDE Plasma.</p>
+  </description>
+  <categories>
+    <category>System</category>
+    <category>Utility</category>
+  </categories>
+  <developer id="io.github.project_ro_asd">
+    <name>Project Ro-ASD</name>
+  </developer>
+  <url type="homepage">https://github.com/Project-Ro-ASD/ro-Assist</url>
+  <url type="bugtracker">https://github.com/Project-Ro-ASD/ro-Assist/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-03-07"/>
+  </releases>
+  <provides>
+    <binary>ro-assist</binary>
+  </provides>
+</component>

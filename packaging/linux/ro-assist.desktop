@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=ro-Assist
+GenericName=System Maintenance Assistant
+GenericName[tr]=Sistem Bakım Yardımcısı
+GenericName[es]=Asistente de Mantenimiento del Sistema
+Comment=Fedora KDE desktop assistant for updates and maintenance
+Comment[tr]=Fedora KDE için güncelleme ve bakım yardımcısı
+Comment[es]=Asistente de escritorio Fedora KDE para actualizaciones y mantenimiento
+Exec=ro-assist
+Icon=ro-assist
+Terminal=false
+Categories=System;Utility;Qt;KDE;
+Keywords=fedora;update;dnf;flatpak;snap;kde;maintenance;
+StartupNotify=true

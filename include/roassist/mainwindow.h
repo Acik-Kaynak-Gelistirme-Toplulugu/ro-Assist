@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QColor>
+#include <QString>
 
 class MainWindow : public QMainWindow
 {
@@ -73,6 +74,7 @@ private:
     void clearActiveOperation();
     bool isOperationRunning() const;
     bool isLibraryOperationActive() const;
+    QString currentLanguageCode() const;
 
     QLabel *versionLabel;
     QLabel *statusLabel;

@@ -2,5 +2,6 @@
 <qresource>
     <file>icons/github.svg</file>
     <file>icons/globe.svg</file>
+    <file>icons/ro-assist.svg</file>
 </qresource>
 </RCC>

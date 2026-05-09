@@ -62,9 +62,11 @@ RPM metadata is configured in both `CMakeLists.txt` (CPack) and `packaging/rpm/r
 .
 |- docs/
 |- include/roassist/
+|- packaging/linux/
 |- packaging/rpm/
 |- resources/icons/
 |- src/
+|- tests/
 |- CMakeLists.txt
 `- .github/
 ```

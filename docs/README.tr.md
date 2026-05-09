@@ -62,9 +62,11 @@ RPM metaverisi hem `CMakeLists.txt` (CPack) hem de `packaging/rpm/ro-assist.spec
 .
 |- docs/
 |- include/roassist/
+|- packaging/linux/
 |- packaging/rpm/
 |- resources/icons/
 |- src/
+|- tests/
 |- CMakeLists.txt
 `- .github/
 ```
