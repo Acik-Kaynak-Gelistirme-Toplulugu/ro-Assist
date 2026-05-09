@@ -1,21 +1,47 @@
-name: Fedora RPM Fabrikasi
-on: [push]
+name: Fedora RPM Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
 jobs:
   build-rpm:
     runs-on: ubuntu-latest
     container: fedora:latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Gerekli Kutuphaneleri Kur
-        run: dnf install -y gcc-c++ cmake rpm-build qt6-qtbase-devel
-      - name: Derle ve Paketle
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
         run: |
-          mkdir build && cd build
-          cmake ..
-          make
+          dnf install -y \
+            gcc-c++ \
+            cmake \
+            ninja-build \
+            rpm-build \
+            desktop-file-utils \
+            appstream \
+            qt6-qtbase-devel
+
+      - name: Build and package
+        env:
+          QT_QPA_PLATFORM: offscreen
+          RO_ASSIST_SKIP_SYSTEM_CHECKS: "1"
+        run: |
+          cmake -S . -B build -G Ninja
+          cmake --build build
+          ctest --test-dir build --output-on-failure
           cpack -G RPM
-      - name: RPM Paketini Cikti Olarak Ver
+
+      - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
           name: ro-assist-fedora-rpm
           path: build/*.rpm
+          if-no-files-found: error

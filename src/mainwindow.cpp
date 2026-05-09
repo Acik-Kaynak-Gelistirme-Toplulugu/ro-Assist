@@ -2,13 +2,10 @@
 #include "roassist/ui_texts.h"
 #include "roassist/update_helpers.h"
 
-#include <QDebug>
 #include <QDesktopServices>
 #include <QDialog>
-#include <QDir>
 #include <QGuiApplication>
 #include <QHBoxLayout>
-#include <QInputDialog>
 #include <QLocale>
 #include <QMessageBox>
 #include <QPalette>
@@ -25,8 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
       carouselTimer(new QTimer(this)), logConsole(new QTextEdit(this)),
       libraryLogConsole(new QTextEdit(this)), activeOperation(None),
       transactionPhaseStarted(false), isTerminatingIntentionally(false),
-      isNetworkConnected(true), isLibraryInstalled(false),
-      accentColor(QColor("#0066cc")) {
+      isNetworkConnected(true), isLibraryInstalled(false) {
   detectSystemLanguageAndTheme();
 
   QNetworkInformation::loadBackendByFeatures(
@@ -166,6 +162,7 @@ void MainWindow::setupUi() {
   QHBoxLayout *topLayout = new QHBoxLayout(topBarWidget);
   topLayout->setContentsMargins(20, 20, 20, 10);
   networkStatusLabel = new QLabel(this);
+  networkStatusLabel->setObjectName("networkStatusLabel");
   networkStatusLabel->setStyleSheet(
       "font-weight: bold; color: #ffcc00; font-size: 14px;");
   networkStatusLabel->setVisible(!isNetworkConnected);
@@ -175,6 +172,7 @@ void MainWindow::setupUi() {
   themeToggleBtn = new QPushButton(this);
 
   langBtn = new QPushButton(this);
+  langBtn->setObjectName("languageButton");
   langBtn->setCursor(Qt::PointingHandCursor);
   langBtn->setFixedSize(130, 42);
 
@@ -638,7 +636,6 @@ void MainWindow::setInitialUpdateStatus() {
 
 void MainWindow::setupStyle() {
   QString baseBg = currentTheme == Dark ? "#352F44" : "#FBF9F1";
-  QString surface = currentTheme == Dark ? "#352F44" : "#FBF9F1";
   QString textCol = currentTheme == Dark ? "#FAF0E6" : "#352F44";
   QString subTextCol = currentTheme == Dark ? "#B9B4C7" : "#5C5470";
   QString borderCol = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
@@ -714,7 +711,7 @@ void MainWindow::setupStyle() {
         }
         QProgressBar::chunk { background-color: %7; border-radius: 8px; }
     )")
-          .arg(baseBg, surface, textCol, subTextCol, borderCol, surfaceSoft)
+          .arg(baseBg, baseBg, textCol, subTextCol, borderCol, surfaceSoft)
           .arg(primary, accent1, accent2, surfaceSoft);
 
   setStyleSheet(style);
@@ -960,9 +957,7 @@ void MainWindow::checkDnfErrors(const QString &output) {
   if (output.contains("Waiting for process", Qt::CaseInsensitive) ||
       output.contains("Another app is currently holding the yum lock",
                       Qt::CaseInsensitive)) {
-    QString msg = currentLang == TR
-                      ? RoAssist::UiTexts::systemBusy(currentLanguageCode())
-                      : RoAssist::UiTexts::systemBusy(currentLanguageCode());
+    QString msg = RoAssist::UiTexts::systemBusy(currentLanguageCode());
     if (isLibraryOperationActive())
       libraryStatusLabel->setText(msg);
     else

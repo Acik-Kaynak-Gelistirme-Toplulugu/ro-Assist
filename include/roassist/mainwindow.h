@@ -13,7 +13,6 @@
 #include <QNetworkInformation>
 #include <QMenu>
 #include <QAction>
-#include <QColor>
 #include <QString>
 
 class MainWindow : public QMainWindow
@@ -153,7 +152,6 @@ private:
     bool isTerminatingIntentionally;
     bool isNetworkConnected;
     bool isLibraryInstalled;
-    QColor accentColor;
 };
 
 #endif // MAINWINDOW_H

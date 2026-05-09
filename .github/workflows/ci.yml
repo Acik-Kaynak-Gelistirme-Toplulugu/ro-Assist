@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          dnf install -y \
+            gcc-c++ \
+            cmake \
+            ninja-build \
+            qt6-qtbase-devel \
+            desktop-file-utils \
+            appstream
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+          RO_ASSIST_SKIP_SYSTEM_CHECKS: "1"
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate desktop entry
+        run: desktop-file-validate packaging/linux/ro-assist.desktop
+
+      - name: Validate AppStream metadata
+        run: appstreamcli validate packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
