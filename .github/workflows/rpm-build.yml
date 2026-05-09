@@ -2,6 +2,11 @@ name: Build RPM Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to upload RPM assets to (example: v0.1.2)
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -10,7 +15,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: rpm-${{ github.workflow }}-${{ github.ref }}
@@ -102,3 +107,36 @@ jobs:
           rpm_path="$(find artifact-rpm -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
           test -n "$rpm_path"
           packaging/scripts/validate-fedora-rpm.sh "$rpm_path"
+
+  publish-release:
+    name: publish-release-assets
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.release_tag != ''
+    needs: validate-rpm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Download x64 RPM artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ro-assist-x64
+          path: release-assets/x64
+
+      - name: Download arm64 RPM artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ro-assist-arm64
+          path: release-assets/arm64
+
+      - name: Publish RPM assets to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tag_name="${GITHUB_REF_NAME}"
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            tag_name="${{ github.event.inputs.release_tag }}"
+          fi
+          gh release upload "$tag_name" \
+            release-assets/x64/*.rpm \
+            release-assets/arm64/*.rpm \
+            --clobber
