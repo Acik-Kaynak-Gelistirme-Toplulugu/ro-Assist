@@ -5,9 +5,24 @@
 #include <QIcon>
 #include <QSettings>
 #include <QStyleFactory>
-#include <QTimer>
 
 namespace {
+
+void configureQtPlatform()
+{
+#ifdef Q_OS_LINUX
+    const QByteArray platform = qgetenv("QT_QPA_PLATFORM");
+    if ((platform.isEmpty() || platform.contains("wayland")) &&
+        !qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY") &&
+        !qEnvironmentVariableIsEmpty("DISPLAY")) {
+        qputenv("QT_QPA_PLATFORM", "xcb");
+    }
+
+    if (qEnvironmentVariableIsEmpty("QT_XCB_GL_INTEGRATION")) {
+        qputenv("QT_XCB_GL_INTEGRATION", "xcb_glx");
+    }
+#endif
+}
 
 void configureDesktopIntegration(QApplication &app)
 {
@@ -51,8 +66,9 @@ void markAutostartWelcomeCompleted()
 
 int main(int argc, char *argv[])
 {
+    configureQtPlatform();
+
     QApplication a(argc, argv);
-    configureDesktopIntegration(a);
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Fedora KDE desktop assistant for system maintenance");
@@ -63,6 +79,10 @@ int main(int argc, char *argv[])
     parser.addOption(autostartOption);
     parser.addOption(smokeTestOption);
     parser.process(a);
+
+    if (!parser.isSet(smokeTestOption)) {
+        configureDesktopIntegration(a);
+    }
 
     if (parser.isSet(autostartOption) && hasCompletedAutostartWelcome()) {
         return 0;
@@ -76,7 +96,8 @@ int main(int argc, char *argv[])
     }
 
     if (parser.isSet(smokeTestOption)) {
-        QTimer::singleShot(0, &a, &QCoreApplication::quit);
+        a.processEvents();
+        return 0;
     }
 
     return a.exec();

@@ -21,7 +21,7 @@ If any command fails, the ISO build must stop.
 
 - `ro-assist` must be built in a Fedora 43 environment.
 - Builds from Fedora 44, Rawhide, or Qt 6.10 environments are not accepted.
-- The package must provide `/usr/bin/ro-assist`.
+- The package must provide the `/usr/bin/ro-assist` launcher and `/usr/libexec/ro-assist/ro-assist` Qt binary.
 - The package must install an autostart entry for the first KDE login.
 - The package must remain compatible with Fedora 43 Qt libraries.
 - Repository metadata must be regenerated after publishing the RPM.
@@ -35,7 +35,8 @@ dnf clean all
 dnf --refresh install ro-assist
 rpm -q ro-assist
 command -v ro-assist
-ldd -r /usr/bin/ro-assist
+test -x /usr/libexec/ro-assist/ro-assist
+ldd -r /usr/libexec/ro-assist/ro-assist
 rpm -qpR ro-assist-*.rpm
 ```
 
@@ -53,8 +54,8 @@ GitHub Actions enforces this policy by:
 - validating installation inside `fedora:43`
 - creating a temporary repo from the built RPM
 - installing `ro-assist` through `dnf install ro-assist`
-- verifying `/usr/bin/ro-assist`
-- checking `ldd -r /usr/bin/ro-assist`
+- verifying `/usr/bin/ro-assist` and `/usr/libexec/ro-assist/ro-assist`
+- checking `ldd -r /usr/libexec/ro-assist/ro-assist`
 - rejecting RPMs that require `Qt_6.10` or `Qt_6.10_PRIVATE_API`
 
 ## First Login Behavior

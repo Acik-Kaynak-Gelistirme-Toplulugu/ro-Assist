@@ -62,8 +62,8 @@ GitHub Actions, RPM paketlerini Fedora 41 uyumluluk tabaninda derler ve Fedora 4
 
 RPM workflow su kontrolleri de zorunlu olarak yapar:
 - uretilen repo uzerinden `dnf install ro-assist`
-- `/usr/bin/ro-assist` dogrulamasi
-- `ldd -r /usr/bin/ro-assist`
+- `/usr/bin/ro-assist` launcher ve `/usr/libexec/ro-assist/ro-assist` binary dogrulamasi
+- `ldd -r /usr/libexec/ro-assist/ro-assist`
 - `Qt_6.10` ve `Qt_6.10_PRIVATE_API` bagimlilik denetimi
 
 Paket, Fedora 43 KDE uzerinde ilk oturum acilisinda `ro-assist --autostart` calistiran bir autostart girdisi de icerir. Uygulama bu acilisi yalnizca ilk giriste gosterir.

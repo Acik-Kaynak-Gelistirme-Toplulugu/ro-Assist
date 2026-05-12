@@ -1,0 +1,10 @@
+#!/bin/sh
+
+: "${QT_QPA_PLATFORM:=xcb}"
+: "${QT_XCB_GL_INTEGRATION:=xcb_glx}"
+
+export QT_QPA_PLATFORM
+export QT_XCB_GL_INTEGRATION
+
+script_dir=$(CDPATH= cd "$(dirname "$0")" && pwd) || exit 1
+exec "$script_dir/../@CMAKE_INSTALL_LIBEXECDIR@/ro-assist/ro-assist" "$@"

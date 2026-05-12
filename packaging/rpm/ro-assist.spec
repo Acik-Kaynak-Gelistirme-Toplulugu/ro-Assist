@@ -29,6 +29,7 @@ ro-Assist is a system management and update assistant for Linux systems, designe
 
 %files
 %{_bindir}/ro-assist
+%{_libexecdir}/ro-assist/ro-assist
 %{_datadir}/applications/ro-assist.desktop
 %config(noreplace) /etc/xdg/autostart/ro-assist-autostart.desktop
 %{_datadir}/metainfo/io.github.project_ro_asd.ro_assist.metainfo.xml

@@ -28,7 +28,13 @@ add_executable(ro-assist ${RO_ASSIST_SOURCES})
 target_include_directories(ro-assist PRIVATE include)
 target_link_libraries(ro-assist PRIVATE Qt6::Widgets Qt6::Network)
 
-install(TARGETS ro-assist RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+configure_file(packaging/linux/ro-assist.in
+        ${CMAKE_CURRENT_BINARY_DIR}/packaging/ro-assist
+        @ONLY)
+
+install(TARGETS ro-assist RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/ro-assist)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/packaging/ro-assist
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES packaging/linux/ro-assist.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES packaging/linux/ro-assist-autostart.desktop
@@ -78,6 +84,7 @@ set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Project-Ro-ASD/ro-Assist")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ro-ASD update and maintenance assistant")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
 set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
 set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0-or-later")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/System")

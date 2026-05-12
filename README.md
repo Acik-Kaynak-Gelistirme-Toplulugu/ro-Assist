@@ -62,8 +62,8 @@ GitHub Actions builds RPMs on a Fedora 41 compatibility baseline and validates t
 
 The RPM workflow also verifies that:
 - `dnf install ro-assist` works from a generated repository
-- `/usr/bin/ro-assist` is present
-- `ldd -r /usr/bin/ro-assist` resolves
+- `/usr/bin/ro-assist` launcher and `/usr/libexec/ro-assist/ro-assist` binary are present
+- `ldd -r /usr/libexec/ro-assist/ro-assist` resolves
 - RPM requirements do not contain `Qt_6.10` or `Qt_6.10_PRIVATE_API`
 
 When installed on Fedora 43 KDE, the package also ships an autostart entry that launches `ro-assist --autostart` on the first login only.

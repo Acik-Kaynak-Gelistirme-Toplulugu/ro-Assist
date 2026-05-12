@@ -49,8 +49,9 @@ printf '%s\n' "$binary_path"
 test -n "$binary_path"
 test -x /usr/bin/ro-assist
 test "$(realpath "$binary_path")" = "/usr/bin/ro-assist"
+test -x /usr/libexec/ro-assist/ro-assist
 test -f /etc/xdg/autostart/ro-assist-autostart.desktop
-ldd -r /usr/bin/ro-assist
+ldd -r /usr/libexec/ro-assist/ro-assist
 
 requirements="$(rpm -qpR "$rpm_path")"
 printf '%s\n' "$requirements"

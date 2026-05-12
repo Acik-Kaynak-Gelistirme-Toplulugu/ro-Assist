@@ -8,7 +8,7 @@ GenericName[es]=Asistente de Mantenimiento del Sistema
 Comment=Ro-ASD update and maintenance assistant
 Comment[tr]=Ro-ASD update and maintenance assistant
 Comment[es]=Ro-ASD update and maintenance assistant
-Exec=ro-assist
+Exec=env QT_QPA_PLATFORM=xcb QT_XCB_GL_INTEGRATION=xcb_glx ro-assist
 Icon=ro-assist
 Terminal=false
 Categories=System;Utility;Qt;KDE;
