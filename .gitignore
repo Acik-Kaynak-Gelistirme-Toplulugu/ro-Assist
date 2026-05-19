@@ -32,3 +32,8 @@ _CPack_Packages/
 build_log.txt
 build_log_new.txt
 latest_build.txt
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
