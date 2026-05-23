@@ -65,6 +65,7 @@ qt_add_translations(ro-assist-ui-tests
         translations/ro-assist_es.ts
 )
 target_include_directories(ro-assist-ui-tests PRIVATE include)
+target_compile_definitions(ro-assist-ui-tests PRIVATE APP_VERSION="${PROJECT_VERSION}")
 target_link_libraries(ro-assist-ui-tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
 
 add_executable(ro-assist-unit-tests

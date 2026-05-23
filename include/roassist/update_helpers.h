@@ -4,11 +4,12 @@
 #include <QProcess>
 #include <QString>
 
+#include <cstdint>
 #include <optional>
 
 namespace RoAssist::UpdateHelpers {
 
-enum class UpdateCheckStatus {
+enum class UpdateCheckStatus : std::uint8_t {
     UpToDate,
     UpdatesAvailable,
     Failed

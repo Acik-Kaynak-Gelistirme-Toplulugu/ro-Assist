@@ -31,9 +31,9 @@ protected:
     void changeEvent(QEvent *event) override;
 
 private slots:
-    void openWebsite();
-    void openRoAsdGitHub();
-    void openRoAssistGitHub();
+    static void openWebsite();
+    static void openRoAsdGitHub();
+    static void openRoAssistGitHub();
     void showAboutDialog();
     
     void startUpdate();
@@ -57,7 +57,7 @@ private slots:
     void toggleTheme();
     void onNetworkConnectedChanged(bool isConnected);
     
-    void openBozokCommunity();
+    static void openBozokCommunity();
     void dummyAppStoreAction();
 
     void toggleUpdateLogs();

@@ -2,6 +2,12 @@
 
 #include <QRegularExpression>
 
+namespace {
+
+constexpr int DNF_UPDATES_EXIT_CODE = 100;
+
+} // namespace
+
 namespace RoAssist::UpdateHelpers {
 
 QString buildSystemUpdateCommand() {
@@ -53,7 +59,7 @@ UpdateCheckStatus classifyCheckUpdateResult(int exitCode,
     return UpdateCheckStatus::Failed;
   }
 
-  if (exitCode == 100) {
+  if (exitCode == DNF_UPDATES_EXIT_CODE) {
     return UpdateCheckStatus::UpdatesAvailable;
   }
 

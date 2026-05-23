@@ -5,11 +5,13 @@
 #include <QDialog>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QLocale>
 #include <QMessageBox>
 #include <QPalette>
 #include <QScreen>
 #include <QScrollBar>
+#include <QStringList>
 #include <QStyleHints>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -38,16 +40,16 @@ MainWindow::MainWindow(QWidget *parent)
             });
   }
 
-  QLocale locale = QLocale::system();
-  if (locale.language() == QLocale::Turkish)
-    loadLanguage(QStringLiteral("tr"));
-  else if (locale.language() == QLocale::Spanish)
-    loadLanguage(QStringLiteral("es"));
-  else
-    loadLanguage(QStringLiteral("en"));
-
   setupUi();
-  updateUiTextAndImages();
+
+  const QLocale locale = QLocale::system();
+  if (locale.language() == QLocale::Turkish) {
+    loadLanguage(QStringLiteral("tr"));
+  } else if (locale.language() == QLocale::Spanish) {
+    loadLanguage(QStringLiteral("es"));
+  } else {
+    loadLanguage(QStringLiteral("en"));
+  }
   setupStyle();
 
   logConsole->hide();
@@ -120,6 +122,18 @@ void MainWindow::clearActiveOperation() {
   isTerminatingIntentionally = false;
 }
 
+void MainWindow::resetOperationUI(const QString &statusText, bool reenableButton) {
+  if (isLibraryOperationActive()) {
+    libraryStatusLabel->setText(statusText);
+    if (reenableButton) { libraryInstallButton->setEnabled(true); }
+    libraryProgressBar->hide();
+  } else {
+    statusLabel->setText(statusText);
+    if (reenableButton) { updateButton->setEnabled(true); }
+    progressBar->hide();
+  }
+}
+
 bool MainWindow::isOperationRunning() const {
   return activeOperation != None ||
          updateProcess->state() != QProcess::NotRunning;
@@ -130,25 +144,26 @@ bool MainWindow::isLibraryOperationActive() const {
 }
 
 QString MainWindow::langFlag(const QString &langCode) const {
-  if (langCode == QStringLiteral("tr")) return QStringLiteral("🇹🇷");
-  if (langCode == QStringLiteral("es")) return QStringLiteral("🇪🇸");
+  if (langCode == QStringLiteral("tr")) { return QStringLiteral("🇹🇷"); }
+  if (langCode == QStringLiteral("es")) { return QStringLiteral("🇪🇸"); }
   return QStringLiteral("🇬🇧");
 }
 
 QString MainWindow::langName(const QString &langCode) const {
-  if (langCode == QStringLiteral("tr")) return tr("Türkçe");
-  if (langCode == QStringLiteral("es")) return tr("Español");
+  if (langCode == QStringLiteral("tr")) { return tr("Türkçe"); }
+  if (langCode == QStringLiteral("es")) { return tr("Español"); }
   return tr("English");
 }
 
 void MainWindow::loadLanguage(const QString &langCode) {
-  if (m_currentLang == langCode) return;
+  if (m_currentLang == langCode) { return; }
   m_currentLang = langCode;
   qApp->removeTranslator(&m_translator);
-  if (!m_translator.load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode))) {
+  if (!m_translator.load(QStringLiteral(":/i18n/ro-assist_%1.qm").arg(langCode))) {
     qWarning("Failed to load translation file for: %s", qPrintable(langCode));
   }
   qApp->installTranslator(&m_translator);
+  updateUiTextAndImages();
 }
 
 void MainWindow::detectTheme() {
@@ -156,8 +171,9 @@ void MainWindow::detectTheme() {
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   if (const QStyleHints *hints = QGuiApplication::styleHints()) {
-    if (hints->colorScheme() == Qt::ColorScheme::Dark)
+    if (hints->colorScheme() == Qt::ColorScheme::Dark) {
       currentTheme = Dark;
+    }
   }
 #else
   if (QGuiApplication::palette().color(QPalette::WindowText).lightness() >
@@ -168,14 +184,14 @@ void MainWindow::detectTheme() {
 }
 
 void MainWindow::setupUi() {
-  QWidget *centralWidget = new QWidget(this);
+  auto *centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
-  QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+  auto *mainLayout = new QVBoxLayout(centralWidget);
   mainLayout->setContentsMargins(0, 0, 0, 0);
 
   // TOP BAR
-  QWidget *topBarWidget = new QWidget(this);
-  QHBoxLayout *topLayout = new QHBoxLayout(topBarWidget);
+  auto *topBarWidget = new QWidget(this);
+  auto *topLayout = new QHBoxLayout(topBarWidget);
   topLayout->setContentsMargins(20, 20, 20, 10);
   networkStatusLabel = new QLabel(this);
   networkStatusLabel->setObjectName("networkStatusLabel");
@@ -216,7 +232,7 @@ void MainWindow::setupUi() {
 
   // 1. CAROUSEL
   carouselViewWidget = new QWidget(this);
-  QHBoxLayout *carouselLayout = new QHBoxLayout(carouselViewWidget);
+  auto *carouselLayout = new QHBoxLayout(carouselViewWidget);
   carouselLayout->setContentsMargins(0, 0, 0, 0);
   prevSlideBtn = new QPushButton("◀", this);
   prevSlideBtn->setObjectName("navButton");
@@ -236,7 +252,7 @@ void MainWindow::setupUi() {
 
   // 2. UPDATE VIEW
   updateViewWidget = new QWidget(this);
-  QVBoxLayout *updateLayout = new QVBoxLayout(updateViewWidget);
+  auto *updateLayout = new QVBoxLayout(updateViewWidget);
   updateLayout->setContentsMargins(20, 0, 20, 0);
   backToCarouselBtn = new QPushButton(this);
   backToCarouselBtn->setObjectName("backButton");
@@ -245,16 +261,16 @@ void MainWindow::setupUi() {
   connect(backToCarouselBtn, &QPushButton::clicked, this,
           &MainWindow::showCarouselScreen);
 
-  QHBoxLayout *updateTopLayout = new QHBoxLayout();
+  auto *updateTopLayout = new QHBoxLayout();
   updateTopLayout->addWidget(backToCarouselBtn);
   updateTopLayout->addStretch();
 
-  QWidget *updatePanel = new QWidget(this);
+  auto *updatePanel = new QWidget(this);
   updatePanel->setObjectName("panelWidget");
-  QVBoxLayout *panelLayout = new QVBoxLayout(updatePanel);
+  auto *panelLayout = new QVBoxLayout(updatePanel);
   panelLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
-  versionLabel = new QLabel(QStringLiteral(APP_VERSION), this);
+  versionLabel = new QLabel(QString::fromLatin1(APP_VERSION), this);
   versionLabel->setAlignment(Qt::AlignCenter);
   versionLabel->setObjectName("versionLabel");
   statusLabel = new QLabel("", this);
@@ -305,7 +321,7 @@ void MainWindow::setupUi() {
 
   // 3. LIBRARY PACKAGE VIEW
   libraryViewWidget = new QWidget(this);
-  QVBoxLayout *libraryLayout = new QVBoxLayout(libraryViewWidget);
+  auto *libraryLayout = new QVBoxLayout(libraryViewWidget);
   libraryLayout->setContentsMargins(20, 0, 20, 0);
 
   backFromLibraryBtn = new QPushButton(this);
@@ -315,13 +331,13 @@ void MainWindow::setupUi() {
   connect(backFromLibraryBtn, &QPushButton::clicked, this,
           &MainWindow::showCarouselScreen);
 
-  QHBoxLayout *libraryTopLayout = new QHBoxLayout();
+  auto *libraryTopLayout = new QHBoxLayout();
   libraryTopLayout->addWidget(backFromLibraryBtn);
   libraryTopLayout->addStretch();
 
-  QWidget *libraryPanel = new QWidget(this);
+  auto *libraryPanel = new QWidget(this);
   libraryPanel->setObjectName("panelWidget");
-  QVBoxLayout *libraryPanelLayout = new QVBoxLayout(libraryPanel);
+  auto *libraryPanelLayout = new QVBoxLayout(libraryPanel);
   libraryPanelLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
   libraryStatusLabel = new QLabel("", this);
@@ -372,7 +388,7 @@ void MainWindow::setupUi() {
 
   // 4. CUSTOM APP STORE VIEW
   appStoreViewWidget = new QWidget(this);
-  QVBoxLayout *storeLayout = new QVBoxLayout(appStoreViewWidget);
+  auto *storeLayout = new QVBoxLayout(appStoreViewWidget);
   storeLayout->setContentsMargins(20, 0, 20, 0);
 
   backFromAppStoreBtn = new QPushButton(this);
@@ -382,13 +398,13 @@ void MainWindow::setupUi() {
   connect(backFromAppStoreBtn, &QPushButton::clicked, this,
           &MainWindow::showCarouselScreen);
 
-  QHBoxLayout *storeTopLayout = new QHBoxLayout();
+  auto *storeTopLayout = new QHBoxLayout();
   storeTopLayout->addWidget(backFromAppStoreBtn);
   storeTopLayout->addStretch();
 
-  QWidget *storePanel = new QWidget(this);
+  auto *storePanel = new QWidget(this);
   storePanel->setObjectName("panelWidget");
-  QVBoxLayout *storePanelLayout = new QVBoxLayout(storePanel);
+  auto *storePanelLayout = new QVBoxLayout(storePanel);
   storePanelLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
   appStoreTitleLabel = new QLabel(this);
@@ -424,8 +440,8 @@ void MainWindow::setupUi() {
   mainLayout->addWidget(mainStack, 1);
 
   // BOTTOM BAR
-  QWidget *bottomBarWidget = new QWidget(this);
-  QHBoxLayout *aboutLayout = new QHBoxLayout(bottomBarWidget);
+  auto *bottomBarWidget = new QWidget(this);
+  auto *aboutLayout = new QHBoxLayout(bottomBarWidget);
   aboutLayout->setContentsMargins(20, 10, 20, 20);
 
   aboutBtn = new QPushButton(tr("About"), this);
@@ -441,8 +457,8 @@ void MainWindow::setupUi() {
 
 void MainWindow::createCarouselSlides() {
   // Slide 1: Update System
-  QWidget *slide1 = new QWidget();
-  QVBoxLayout *l1 = new QVBoxLayout(slide1);
+  auto *slide1 = new QWidget();
+  auto *slide1Layout = new QVBoxLayout(slide1);
   slide1Title = new QLabel(this);
   slide1Title->setObjectName("slideTitle");
   slide1Title->setAlignment(Qt::AlignCenter);
@@ -456,24 +472,24 @@ void MainWindow::createCarouselSlides() {
   updateSlideBtn->setMinimumSize(280, 70);
   updateSlideBtn->setCursor(Qt::PointingHandCursor);
   connect(updateSlideBtn, &QPushButton::clicked, this, &MainWindow::showUpdateScreen);
-  l1->addStretch();
-  l1->addWidget(slide1Title);
-  l1->addSpacing(20);
-  l1->addWidget(slide1Desc);
-  l1->addSpacing(40);
-  l1->addWidget(updateSlideBtn, 0, Qt::AlignCenter);
-  l1->addStretch();
+  slide1Layout->addStretch();
+  slide1Layout->addWidget(slide1Title);
+  slide1Layout->addSpacing(20);
+  slide1Layout->addWidget(slide1Desc);
+  slide1Layout->addSpacing(40);
+  slide1Layout->addWidget(updateSlideBtn, 0, Qt::AlignCenter);
+  slide1Layout->addStretch();
   carousel->addWidget(slide1);
 
   // Slide 2: Social Media
-  QWidget *slide2 = new QWidget();
-  QVBoxLayout *l2 = new QVBoxLayout(slide2);
+  auto *slide2 = new QWidget();
+  auto *slide2Layout = new QVBoxLayout(slide2);
   slide2Title = new QLabel(this);
   slide2Title->setObjectName("slideTitle");
   slide2Title->setAlignment(Qt::AlignCenter);
   slide2Title->setWordWrap(true);
 
-  QHBoxLayout *socialLayout = new QHBoxLayout();
+  auto *socialLayout = new QHBoxLayout();
   socialLayout->setSpacing(20);
   websiteBtn = new QToolButton(this);
   roAsdGitHubBtn = new QToolButton(this);
@@ -513,16 +529,16 @@ void MainWindow::createCarouselSlides() {
   connect(roAssistGitHubBtn, &QAbstractButton::clicked, this,
           &MainWindow::openRoAssistGitHub);
 
-  l2->addStretch();
-  l2->addWidget(slide2Title);
-  l2->addSpacing(30);
-  l2->addLayout(socialLayout);
-  l2->addStretch();
+  slide2Layout->addStretch();
+  slide2Layout->addWidget(slide2Title);
+  slide2Layout->addSpacing(30);
+  slide2Layout->addLayout(socialLayout);
+  slide2Layout->addStretch();
   carousel->addWidget(slide2);
 
   // Slide 3: App Store
-  QWidget *slide3 = new QWidget();
-  QVBoxLayout *l3 = new QVBoxLayout(slide3);
+  auto *slide3 = new QWidget();
+  auto *slide3Layout = new QVBoxLayout(slide3);
   slide3Title = new QLabel(this);
   slide3Title->setObjectName("slideTitle");
   slide3Title->setAlignment(Qt::AlignCenter);
@@ -537,18 +553,18 @@ void MainWindow::createCarouselSlides() {
   appStoreSlideBtn->setCursor(Qt::PointingHandCursor);
   connect(appStoreSlideBtn, &QPushButton::clicked, this,
           &MainWindow::showAppStoreScreen);
-  l3->addStretch();
-  l3->addWidget(slide3Title);
-  l3->addSpacing(20);
-  l3->addWidget(slide3Desc);
-  l3->addSpacing(40);
-  l3->addWidget(appStoreSlideBtn, 0, Qt::AlignCenter);
-  l3->addStretch();
+  slide3Layout->addStretch();
+  slide3Layout->addWidget(slide3Title);
+  slide3Layout->addSpacing(20);
+  slide3Layout->addWidget(slide3Desc);
+  slide3Layout->addSpacing(40);
+  slide3Layout->addWidget(appStoreSlideBtn, 0, Qt::AlignCenter);
+  slide3Layout->addStretch();
   carousel->addWidget(slide3);
 
   // Slide 4: Bozok Community
-  QWidget *slide4 = new QWidget();
-  QVBoxLayout *l4 = new QVBoxLayout(slide4);
+  auto *slide4 = new QWidget();
+  auto *slide4Layout = new QVBoxLayout(slide4);
   slide4Title = new QLabel(this);
   slide4Title->setObjectName("slideTitle");
   slide4Title->setAlignment(Qt::AlignCenter);
@@ -563,18 +579,18 @@ void MainWindow::createCarouselSlides() {
   bozokBtn->setCursor(Qt::PointingHandCursor);
   connect(bozokBtn, &QPushButton::clicked, this,
           &MainWindow::openBozokCommunity);
-  l4->addStretch();
-  l4->addWidget(slide4Title);
-  l4->addSpacing(20);
-  l4->addWidget(slide4Desc);
-  l4->addSpacing(40);
-  l4->addWidget(bozokBtn, 0, Qt::AlignCenter);
-  l4->addStretch();
+  slide4Layout->addStretch();
+  slide4Layout->addWidget(slide4Title);
+  slide4Layout->addSpacing(20);
+  slide4Layout->addWidget(slide4Desc);
+  slide4Layout->addSpacing(40);
+  slide4Layout->addWidget(bozokBtn, 0, Qt::AlignCenter);
+  slide4Layout->addStretch();
   carousel->addWidget(slide4);
 
   // Slide 5: Library Package
-  QWidget *slide5 = new QWidget();
-  QVBoxLayout *l5 = new QVBoxLayout(slide5);
+  auto *slide5 = new QWidget();
+  auto *slide5Layout = new QVBoxLayout(slide5);
   slide5Title = new QLabel(this);
   slide5Title->setObjectName("slideTitle");
   slide5Title->setAlignment(Qt::AlignCenter);
@@ -589,13 +605,13 @@ void MainWindow::createCarouselSlides() {
   libraryPackageSlideBtn->setCursor(Qt::PointingHandCursor);
   connect(libraryPackageSlideBtn, &QPushButton::clicked, this,
           &MainWindow::showLibraryScreen);
-  l5->addStretch();
-  l5->addWidget(slide5Title);
-  l5->addSpacing(20);
-  l5->addWidget(slide5Desc);
-  l5->addSpacing(40);
-  l5->addWidget(libraryPackageSlideBtn, 0, Qt::AlignCenter);
-  l5->addStretch();
+  slide5Layout->addStretch();
+  slide5Layout->addWidget(slide5Title);
+  slide5Layout->addSpacing(20);
+  slide5Layout->addWidget(slide5Desc);
+  slide5Layout->addSpacing(40);
+  slide5Layout->addWidget(libraryPackageSlideBtn, 0, Qt::AlignCenter);
+  slide5Layout->addStretch();
   carousel->addWidget(slide5);
 }
 
@@ -616,7 +632,7 @@ void MainWindow::updateUiTextAndImages() {
 
   versionLabel->setText(
       QStringLiteral("%1: %2")
-          .arg(tr("Current Version"), QStringLiteral(APP_VERSION)));
+          .arg(tr("Current Version"), QString::fromLatin1(APP_VERSION)));
 
   updateButton->setText(tr("Update System"));
   slide1Title->setText(tr("Update Your System With One Click"));
@@ -660,24 +676,25 @@ void MainWindow::updateUiTextAndImages() {
 }
 
 void MainWindow::setInitialUpdateStatus() {
-  if (updateProcess->state() != QProcess::NotRunning || transactionPhaseStarted)
+  if (updateProcess->state() != QProcess::NotRunning || transactionPhaseStarted) {
     return;
+  }
 
   statusLabel->setText(tr("Checking for updates..."));
 }
 
 void MainWindow::setupStyle() {
-  QString baseBg = currentTheme == Dark ? "#352F44" : "#FBF9F1";
-  QString textCol = currentTheme == Dark ? "#FAF0E6" : "#352F44";
-  QString subTextCol = currentTheme == Dark ? "#B9B4C7" : "#5C5470";
-  QString borderCol = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
-  QString surfaceSoft = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
+  const QString baseBg = currentTheme == Dark ? "#352F44" : "#FBF9F1";
+  const QString textCol = currentTheme == Dark ? "#FAF0E6" : "#352F44";
+  const QString subTextCol = currentTheme == Dark ? "#B9B4C7" : "#5C5470";
+  const QString borderCol = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
+  const QString surfaceSoft = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
 
-  QString primary = currentTheme == Dark ? "#5C5470" : "#92C7CF";
-  QString accent1 = currentTheme == Dark ? "#352F44" : "#AAD7D9";
-  QString accent2 = currentTheme == Dark ? "#B9B4C7" : "#92C7CF";
+  const QString primary = currentTheme == Dark ? "#5C5470" : "#92C7CF";
+  const QString accent1 = currentTheme == Dark ? "#352F44" : "#AAD7D9";
+  const QString accent2 = currentTheme == Dark ? "#B9B4C7" : "#92C7CF";
 
-  QString style =
+  const QString style =
       QString(R"(
         * { outline: none; }
         QMainWindow { background-color: %1; }
@@ -750,13 +767,13 @@ void MainWindow::setupStyle() {
 }
 
 void MainWindow::nextSlide() {
-  int next = (carousel->currentIndex() + 1) % carousel->count();
+  const int next = (carousel->currentIndex() + 1) % carousel->count();
   carousel->setCurrentIndex(next);
   carouselTimer->start(5000);
 }
 
 void MainWindow::prevSlide() {
-  int prev =
+  const int prev =
       (carousel->currentIndex() - 1 + carousel->count()) % carousel->count();
   carousel->setCurrentIndex(prev);
   carouselTimer->start(5000);
@@ -799,7 +816,7 @@ void MainWindow::showCarouselScreen() {
 }
 
 void MainWindow::changeLanguage(QAction *action) {
-  if (!action) return;
+  if (!action) { return; }
   loadLanguage(action->data().toString());
 }
 
@@ -847,17 +864,17 @@ void MainWindow::showAboutDialog() {
                            .arg(currentTheme == Dark ? "#352F44" : "#FBF9F1",
                                 currentTheme == Dark ? "#5C5470" : "#E5E1DA"));
 
-  QVBoxLayout *layout = new QVBoxLayout(&dialog);
+  auto *layout = new QVBoxLayout(&dialog);
   layout->setContentsMargins(40, 40, 40, 40);
   layout->setSpacing(25);
 
-  QLabel *titleLabel = new QLabel("ro-Assist", &dialog);
+  auto *titleLabel = new QLabel("ro-Assist", &dialog);
   titleLabel->setAlignment(Qt::AlignCenter);
   titleLabel->setStyleSheet(
       QString("font-size: 42px; font-weight: 900; color: %1;")
           .arg(currentTheme == Dark ? "#FAF0E6" : "#352F44"));
 
-  QLabel *descLabel = new QLabel(&dialog);
+  auto *descLabel = new QLabel(&dialog);
   descLabel->setWordWrap(true);
   descLabel->setAlignment(Qt::AlignCenter);
   descLabel->setText(tr("Yozgat Bozok University Open Source Software Development Club ro-ASD project system management tool."));
@@ -865,7 +882,7 @@ void MainWindow::showAboutDialog() {
       "font-size: 16px; color: " +
       QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
 
-  QLabel *infoLabel = new QLabel(&dialog);
+  auto *infoLabel = new QLabel(&dialog);
   infoLabel->setAlignment(Qt::AlignCenter);
   infoLabel->setText(
       QString("<span style='font-size: 15px;'><b>%1:</b> Ebubekir "
@@ -875,7 +892,7 @@ void MainWindow::showAboutDialog() {
   infoLabel->setStyleSheet(
       "color: " + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
 
-  QPushButton *okBtn = new QPushButton(tr("Close"), &dialog);
+  auto *okBtn = new QPushButton(tr("Close"), &dialog);
   okBtn->setObjectName("actionButton");
   okBtn->setFixedSize(200, 50);
   okBtn->setCursor(Qt::PointingHandCursor);
@@ -955,16 +972,16 @@ void MainWindow::startUpdate() {
 }
 
 void MainWindow::appendLog(const QString &text, const QString &color) {
-  QString formattedText = QString("<span style='color:%1'>%2</span>")
+  const QString formattedText = QString("<span style='color:%1'>%2</span>")
                               .arg(color, text.toHtmlEscaped());
   if (isLibraryOperationActive()) {
-    libraryLogConsole->append(formattedText);
-    QScrollBar *sb = libraryLogConsole->verticalScrollBar();
-    sb->setValue(sb->maximum());
+    libraryLogConsole->appendHtml(formattedText);
+    auto *scrollBar = libraryLogConsole->verticalScrollBar();
+    scrollBar->setValue(scrollBar->maximum());
   } else {
-    logConsole->append(formattedText);
-    QScrollBar *sb = logConsole->verticalScrollBar();
-    sb->setValue(sb->maximum());
+    logConsole->appendHtml(formattedText);
+    auto *scrollBar = logConsole->verticalScrollBar();
+    scrollBar->setValue(scrollBar->maximum());
   }
 }
 
@@ -972,11 +989,12 @@ void MainWindow::checkDnfErrors(const QString &output) {
   if (output.contains("Waiting for process", Qt::CaseInsensitive) ||
       output.contains("Another app is currently holding the yum lock",
                       Qt::CaseInsensitive)) {
-    QString msg = tr("System is busy...");
-    if (isLibraryOperationActive())
+    const QString msg = tr("System is busy...");
+    if (isLibraryOperationActive()) {
       libraryStatusLabel->setText(msg);
-    else
+    } else {
       statusLabel->setText(msg);
+    }
   }
   if (output.contains("Error: Failed to download metadata",
                       Qt::CaseInsensitive) ||
@@ -1007,32 +1025,32 @@ void MainWindow::handleUpdateOutput() {
   if (const auto progress =
           RoAssist::UpdateHelpers::parseTransactionProgress(output)) {
     transactionPhaseStarted = true;
-    QString t = tr("Installing packages... (%1/%2)")
-                    .arg(progress->current)
-                    .arg(progress->total);
+    const QString statusMsg = tr("Installing packages... (%1/%2)")
+                                  .arg(progress->current)
+                                  .arg(progress->total);
     if (isLibraryOperationActive()) {
       libraryProgressBar->setRange(0, progress->total);
       libraryProgressBar->setValue(progress->current);
-      libraryStatusLabel->setText(t);
+      libraryStatusLabel->setText(statusMsg);
     } else {
       progressBar->setRange(0, progress->total);
       progressBar->setValue(progress->current);
-      statusLabel->setText(t);
+      statusLabel->setText(statusMsg);
     }
   }
 
   if (!transactionPhaseStarted) {
     if (const auto percent =
             RoAssist::UpdateHelpers::parseDownloadPercent(output)) {
-      QString t = tr("Downloading... %1%").arg(*percent);
+      const QString statusMsg = tr("Downloading... %1%").arg(*percent);
       if (isLibraryOperationActive()) {
         libraryProgressBar->setRange(0, 100);
         libraryProgressBar->setValue(*percent);
-        libraryStatusLabel->setText(t);
+        libraryStatusLabel->setText(statusMsg);
       } else {
         progressBar->setRange(0, 100);
         progressBar->setValue(*percent);
-        statusLabel->setText(t);
+        statusLabel->setText(statusMsg);
       }
     }
   }
@@ -1063,8 +1081,9 @@ void MainWindow::handleUpdateErrorOutput() {
 
 void MainWindow::handleCheckUpdateFinished(int exitCode,
                                            QProcess::ExitStatus exitStatus) {
-  if (transactionPhaseStarted)
+  if (transactionPhaseStarted) {
     return;
+  }
 
   switch (RoAssist::UpdateHelpers::classifyCheckUpdateResult(exitCode,
                                                              exitStatus)) {
@@ -1082,18 +1101,14 @@ void MainWindow::handleCheckUpdateFinished(int exitCode,
 
 void MainWindow::handleCheckLibFinished(int exitCode,
                                         QProcess::ExitStatus exitStatus) {
-  if (exitStatus == QProcess::NormalExit && exitCode == 0) {
-    isLibraryInstalled = true;
-  } else {
-    isLibraryInstalled = false;
-  }
+  isLibraryInstalled = (exitStatus == QProcess::NormalExit && exitCode == 0);
   updateUiTextAndImages();
   libraryInstallButton->setEnabled(true);
 }
 
 void MainWindow::handleUpdateFinished(int exitCode,
                                       QProcess::ExitStatus exitStatus) {
-  bool libraryOperation = isLibraryOperationActive();
+  const bool libraryOperation = isLibraryOperationActive();
   if (libraryOperation) {
     libraryInstallButton->setEnabled(true);
     if (exitStatus == QProcess::NormalExit && exitCode == 0) {
@@ -1108,8 +1123,9 @@ void MainWindow::handleUpdateFinished(int exitCode,
         libraryProgressBar->hide();
         libraryStatusLabel->setText(tr("Process Failed!"));
         appendLog(tr("Error occurred in process."), "#ff4444");
-        if (!libraryLogConsole->isVisible())
+        if (!libraryLogConsole->isVisible()) {
           toggleLibraryLogs();
+        }
       }
     }
   } else {
@@ -1124,8 +1140,9 @@ void MainWindow::handleUpdateFinished(int exitCode,
         progressBar->hide();
         statusLabel->setText(tr("Process Failed!"));
         appendLog(tr("Error occurred during process."), "#ff4444");
-        if (!logConsole->isVisible())
+        if (!logConsole->isVisible()) {
           toggleUpdateLogs();
+        }
       }
     }
   }
@@ -1133,10 +1150,11 @@ void MainWindow::handleUpdateFinished(int exitCode,
 }
 
 void MainWindow::handleUpdateProcessError(QProcess::ProcessError error) {
-  if (isTerminatingIntentionally)
+  if (isTerminatingIntentionally) {
     return;
+  }
 
-  QString errorMsg =
+  const QString errorMsg =
       (error == QProcess::FailedToStart)
           ? tr("Component failed to start.")
           : tr("Component crashed.");
