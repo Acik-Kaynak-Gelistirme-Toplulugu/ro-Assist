@@ -28,14 +28,14 @@ MainWindow::MainWindow(QWidget *parent)
 
   QNetworkInformation::loadBackendByFeatures(
       QNetworkInformation::Feature::Reachability);
-  if (QNetworkInformation::instance()) {
+  if (QNetworkInformation::instance() != nullptr) {
     isNetworkConnected = QNetworkInformation::instance()->reachability() ==
                          QNetworkInformation::Reachability::Online;
     connect(QNetworkInformation::instance(),
             &QNetworkInformation::reachabilityChanged, this,
-            [this](QNetworkInformation::Reachability r) {
+            [this](QNetworkInformation::Reachability reachability) {
               onNetworkConnectedChanged(
-                  r == QNetworkInformation::Reachability::Online);
+                  reachability == QNetworkInformation::Reachability::Online);
             });
   }
 
@@ -53,10 +53,10 @@ MainWindow::MainWindow(QWidget *parent)
 
   logConsole->hide();
   libraryLogConsole->hide();
-  if (QScreen *screen = QGuiApplication::primaryScreen()) {
-    QRect screenGeometry = screen->geometry();
-    int width = screenGeometry.width() * 0.66;
-    int height = screenGeometry.height() * 0.66;
+  if (const QScreen *screen = QGuiApplication::primaryScreen()) {
+    const QRect screenGeometry = screen->geometry();
+    const int width = static_cast<int>(screenGeometry.width() * 0.66);
+    const int height = static_cast<int>(screenGeometry.height() * 0.66);
     resize(width, height);
   }
 
@@ -84,19 +84,21 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-  if (updateProcess && updateProcess->state() != QProcess::NotRunning) {
+  if (updateProcess != nullptr &&
+      updateProcess->state() != QProcess::NotRunning) {
     updateProcess->terminate();
     if (!updateProcess->waitForFinished(1000)) {
       updateProcess->kill();
       updateProcess->waitForFinished(1000);
     }
   }
-  if (checkUpdateProcess &&
+  if (checkUpdateProcess != nullptr &&
       checkUpdateProcess->state() != QProcess::NotRunning) {
     checkUpdateProcess->kill();
     checkUpdateProcess->waitForFinished(1000);
   }
-  if (checkLibProcess && checkLibProcess->state() != QProcess::NotRunning) {
+  if (checkLibProcess != nullptr &&
+      checkLibProcess->state() != QProcess::NotRunning) {
     checkLibProcess->kill();
     checkLibProcess->waitForFinished(1000);
   }
@@ -116,7 +118,7 @@ void MainWindow::setOperationRunning(OperationType operation) {
 }
 
 void MainWindow::clearActiveOperation() {
-  activeOperation = None;
+  activeOperation = OperationType::None;
   transactionPhaseStarted = false;
   isTerminatingIntentionally = false;
 }
@@ -134,24 +136,24 @@ void MainWindow::resetOperationUI(const QString &statusText, bool reenableButton
 }
 
 bool MainWindow::isOperationRunning() const {
-  return activeOperation != None ||
+  return activeOperation != OperationType::None ||
          updateProcess->state() != QProcess::NotRunning;
 }
 
 bool MainWindow::isLibraryOperationActive() const {
-  return activeOperation == LibraryInstall;
+  return activeOperation == OperationType::LibraryInstall;
 }
 
-QString MainWindow::langFlag(const QString &langCode) const {
+QString MainWindow::langFlag(const QString &langCode) {
   if (langCode == QStringLiteral("tr")) { return QStringLiteral("🇹🇷"); }
   if (langCode == QStringLiteral("es")) { return QStringLiteral("🇪🇸"); }
   return QStringLiteral("🇬🇧");
 }
 
-QString MainWindow::langName(const QString &langCode) const {
-  if (langCode == QStringLiteral("tr")) { return tr("Türkçe"); }
-  if (langCode == QStringLiteral("es")) { return tr("Español"); }
-  return tr("English");
+QString MainWindow::langName(const QString &langCode) {
+  if (langCode == QStringLiteral("tr")) { return QObject::tr("Türkçe"); }
+  if (langCode == QStringLiteral("es")) { return QObject::tr("Español"); }
+  return QObject::tr("English");
 }
 
 void MainWindow::loadLanguage(const QString &langCode) {
@@ -166,18 +168,18 @@ void MainWindow::loadLanguage(const QString &langCode) {
 }
 
 void MainWindow::detectTheme() {
-  currentTheme = Light;
+  currentTheme = Theme::Light;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   if (const QStyleHints *hints = QGuiApplication::styleHints()) {
     if (hints->colorScheme() == Qt::ColorScheme::Dark) {
-      currentTheme = Dark;
+      currentTheme = Theme::Dark;
     }
   }
 #else
   if (QGuiApplication::palette().color(QPalette::WindowText).lightness() >
       QGuiApplication::palette().color(QPalette::Window).lightness()) {
-    currentTheme = Dark;
+    currentTheme = Theme::Dark;
   }
 #endif
 }
@@ -615,8 +617,8 @@ void MainWindow::createCarouselSlides() {
 }
 
 void MainWindow::updateUiTextAndImages() {
-  const QString themeEmoji = currentTheme == Dark ? QStringLiteral("☀️ ") : QStringLiteral("🌙 ");
-  themeToggleBtn->setText(themeEmoji + (currentTheme == Dark ? tr("Light") : tr("Dark")));
+  const QString themeEmoji = currentTheme == Theme::Dark ? QStringLiteral("☀️ ") : QStringLiteral("🌙 ");
+  themeToggleBtn->setText(themeEmoji + (currentTheme == Theme::Dark ? tr("Light") : tr("Dark")));
 
   langBtn->setText(langFlag(m_currentLang) + QStringLiteral(" ") + langName(m_currentLang));
 
@@ -655,7 +657,7 @@ void MainWindow::updateUiTextAndImages() {
   slide5Desc->setText(tr("You can download and update game libraries."));
   libraryPackageSlideBtn->setText(tr("Open Library Screen"));
 
-  if (activeOperation != LibraryInstall) {
+  if (activeOperation != OperationType::LibraryInstall) {
     libraryStatusLabel->setText(tr("Start Download"));
   }
   logConsole->setPlaceholderText(tr("Logs..."));
@@ -666,7 +668,7 @@ void MainWindow::updateUiTextAndImages() {
   websiteBtn->setText(tr("Website"));
   aboutBtn->setText(tr("About"));
 
-  if (activeOperation != LibraryInstall &&
+  if (activeOperation != OperationType::LibraryInstall &&
       checkLibProcess->state() == QProcess::NotRunning) {
     libraryInstallButton->setText(isLibraryInstalled ? tr("Update Libraries") : tr("Download Libraries"));
   }
@@ -683,15 +685,15 @@ void MainWindow::setInitialUpdateStatus() {
 }
 
 void MainWindow::setupStyle() {
-  const QString baseBg = currentTheme == Dark ? "#352F44" : "#FBF9F1";
-  const QString textCol = currentTheme == Dark ? "#FAF0E6" : "#352F44";
-  const QString subTextCol = currentTheme == Dark ? "#B9B4C7" : "#5C5470";
-  const QString borderCol = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
-  const QString surfaceSoft = currentTheme == Dark ? "#5C5470" : "#E5E1DA";
+  const QString baseBg = currentTheme == Theme::Dark ? "#352F44" : "#FBF9F1";
+  const QString textCol = currentTheme == Theme::Dark ? "#FAF0E6" : "#352F44";
+  const QString subTextCol = currentTheme == Theme::Dark ? "#B9B4C7" : "#5C5470";
+  const QString borderCol = currentTheme == Theme::Dark ? "#5C5470" : "#E5E1DA";
+  const QString surfaceSoft = currentTheme == Theme::Dark ? "#5C5470" : "#E5E1DA";
 
-  const QString primary = currentTheme == Dark ? "#5C5470" : "#92C7CF";
-  const QString accent1 = currentTheme == Dark ? "#352F44" : "#AAD7D9";
-  const QString accent2 = currentTheme == Dark ? "#B9B4C7" : "#92C7CF";
+  const QString primary = currentTheme == Theme::Dark ? "#5C5470" : "#92C7CF";
+  const QString accent1 = currentTheme == Theme::Dark ? "#352F44" : "#AAD7D9";
+  const QString accent2 = currentTheme == Theme::Dark ? "#B9B4C7" : "#92C7CF";
 
   const QString style =
       QStringLiteral(R"(
@@ -815,12 +817,12 @@ void MainWindow::showCarouselScreen() {
 }
 
 void MainWindow::changeLanguage(QAction *action) {
-  if (!action) { return; }
+  if (action == nullptr) { return; }
   loadLanguage(action->data().toString());
 }
 
 void MainWindow::toggleTheme() {
-  currentTheme = (currentTheme == Light) ? Dark : Light;
+  currentTheme = (currentTheme == Theme::Light) ? Theme::Dark : Theme::Light;
   updateUiTextAndImages();
   setupStyle();
 }
@@ -860,8 +862,8 @@ void MainWindow::showAboutDialog() {
   dialog.setStyleSheet(this->styleSheet() +
                        QStringLiteral(" QDialog { background-color: %1; "
                                       "border-radius: 16px; border: 1px solid %2; }")
-                           .arg(currentTheme == Dark ? "#352F44" : "#FBF9F1",
-                                currentTheme == Dark ? "#5C5470" : "#E5E1DA"));
+                           .arg(currentTheme == Theme::Dark ? "#352F44" : "#FBF9F1",
+                                currentTheme == Theme::Dark ? "#5C5470" : "#E5E1DA"));
 
   auto *layout = new QVBoxLayout(&dialog);
   layout->setContentsMargins(40, 40, 40, 40);
@@ -871,7 +873,7 @@ void MainWindow::showAboutDialog() {
   titleLabel->setAlignment(Qt::AlignCenter);
   titleLabel->setStyleSheet(
       QStringLiteral("font-size: 42px; font-weight: 900; color: %1;")
-          .arg(currentTheme == Dark ? "#FAF0E6" : "#352F44"));
+          .arg(currentTheme == Theme::Dark ? "#FAF0E6" : "#352F44"));
 
   auto *descLabel = new QLabel(&dialog);
   descLabel->setWordWrap(true);
@@ -879,7 +881,7 @@ void MainWindow::showAboutDialog() {
   descLabel->setText(tr("Yozgat Bozok University Open Source Software Development Club ro-ASD project system management tool."));
   descLabel->setStyleSheet(
       "font-size: 16px; color: " +
-      QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
+      QString(currentTheme == Theme::Dark ? "#B9B4C7" : "#5C5470") + ";");
 
   auto *infoLabel = new QLabel(&dialog);
   infoLabel->setAlignment(Qt::AlignCenter);
@@ -889,7 +891,7 @@ void MainWindow::showAboutDialog() {
           .arg(tr("Developer"))
           .arg(tr("Year")));
   infoLabel->setStyleSheet(
-      QStringLiteral("color: ") + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
+      QStringLiteral("color: ") + QString(currentTheme == Theme::Dark ? "#B9B4C7" : "#5C5470") + ";");
 
   auto *okBtn = new QPushButton(tr("Close"), &dialog);
   okBtn->setObjectName("actionButton");
@@ -934,9 +936,9 @@ void MainWindow::startLibraryPackageInstall() {
 
   libraryLogConsole->clear();
   appendLog(tr("Installing libraries..."), "#0066cc");
-  setOperationRunning(LibraryInstall);
+  setOperationRunning(OperationType::LibraryInstall);
 
-  QString action = isLibraryInstalled ? "upgrade" : "install";
+  const QString action = isLibraryInstalled ? "upgrade" : "install";
   updateProcess->start("pkexec", QStringList()
                                      << "dnf" << action << "-y" << "gamemode"
                                      << "mangohud" << "vulkan-loader"
@@ -963,7 +965,7 @@ void MainWindow::startUpdate() {
   statusLabel->setText(tr("System update starting..."));
   logConsole->clear();
   appendLog(tr("System update starting..."), "#0066cc");
-  setOperationRunning(SystemUpdate);
+  setOperationRunning(OperationType::SystemUpdate);
 
   updateProcess->start("pkexec", QStringList()
                                      << "sh" << "-c"
@@ -1010,10 +1012,10 @@ void MainWindow::checkDnfErrors(const QString &output) {
 }
 
 void MainWindow::handleUpdateOutput() {
-  QString output = QString::fromUtf8(updateProcess->readAllStandardOutput());
-  QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+  const QString output = QString::fromUtf8(updateProcess->readAllStandardOutput());
+  const QStringList lines = output.split('\n', Qt::SkipEmptyParts);
   for (const QString &line : lines) {
-    appendLog(line, currentTheme == Dark ? "#cccccc" : "#e60909");
+    appendLog(line, currentTheme == Theme::Dark ? "#cccccc" : "#e60909");
   }
   checkDnfErrors(output);
 
@@ -1056,9 +1058,9 @@ void MainWindow::handleUpdateOutput() {
 }
 
 void MainWindow::handleUpdateErrorOutput() {
-  QString errorOutput =
+  const QString errorOutput =
       QString::fromUtf8(updateProcess->readAllStandardError());
-  QStringList lines = errorOutput.split('\n', Qt::SkipEmptyParts);
+  const QStringList lines = errorOutput.split('\n', Qt::SkipEmptyParts);
   for (const QString &line : lines) {
     if (!line.contains(QLatin1String("[sudo]"))) {
       appendLog(line, "#cc7700");

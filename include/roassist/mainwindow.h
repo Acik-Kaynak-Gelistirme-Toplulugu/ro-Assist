@@ -21,8 +21,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    enum Theme { Light, Dark };
-    enum OperationType { None, SystemUpdate, LibraryInstall };
+    enum class Theme { Light, Dark };
+    enum class OperationType { None, SystemUpdate, LibraryInstall };
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -65,8 +65,8 @@ private slots:
 
 private:
     static constexpr int CAROUSEL_INTERVAL_MS = 5000;
-    QString langFlag(const QString &langCode) const;
-    QString langName(const QString &langCode) const;
+    [[nodiscard]] static QString langFlag(const QString &langCode);
+    [[nodiscard]] static QString langName(const QString &langCode);
     void loadLanguage(const QString &langCode);
     void setupUi();
     void setupStyle();
@@ -79,8 +79,8 @@ private:
     void setInitialUpdateStatus();
     void setOperationRunning(OperationType operation);
     void clearActiveOperation();
-    bool isOperationRunning() const;
-    bool isLibraryOperationActive() const;
+    [[nodiscard]] bool isOperationRunning() const;
+    [[nodiscard]] bool isLibraryOperationActive() const;
 
     QTranslator m_translator;
     QString m_currentLang;
@@ -151,8 +151,8 @@ private:
     QLabel *appStorePlaceholderIcon;
     QPushButton *appStoreOpenAppBtn;
 
-    Theme currentTheme{Light};
-    OperationType activeOperation{None};
+    Theme currentTheme{Theme::Light};
+    OperationType activeOperation{OperationType::None};
     bool transactionPhaseStarted{false};
     bool isTerminatingIntentionally{false};
     bool isNetworkConnected{true};

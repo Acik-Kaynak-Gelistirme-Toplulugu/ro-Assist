@@ -1,0 +1,43 @@
+---
+Checks: >
+  *,
+  -llvmlibc-*,
+  -fuchsia-*,
+  -altera-*,
+  -google-*,
+  -abseil-*,
+  -zircon-*,
+  -darwin-*,
+  -objc-*,
+  -mpi-*,
+  -linuxkernel-*,
+  -misc-include-cleaner,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-owning-memory,
+  -hicpp-vararg,
+  -cppcoreguidelines-pro-type-vararg,
+  -hicpp-no-array-decay,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -hicpp-explicit-conversions,
+  -hicpp-member-init,
+  -cppcoreguidelines-pro-type-member-init,
+  -llvm-header-guard,
+  -readability-identifier-length,
+  -performance-enum-size,
+  -clang-diagnostic-*,
+  -llvm-include-order,
+  -cppcoreguidelines-special-member-functions,
+  -hicpp-special-member-functions,
+  -modernize-use-trailing-return-type,
+  -modernize-use-override,
+  -readability-redundant-access-specifiers,
+  -misc-non-private-member-variables-in-classes,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -misc-use-anonymous-namespace,
+  -cppcoreguidelines-explicit-virtual-functions,
+  -hicpp-use-override
+
+HeaderFilterRegex: '.*'
+
+...

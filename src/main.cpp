@@ -7,9 +7,8 @@
 #include <QSettings>
 #include <QStyleFactory>
 
-namespace {
 
-void configureQtPlatform()
+static void configureQtPlatform()
 {
 #ifdef Q_OS_LINUX
     const QByteArray platform = qgetenv("QT_QPA_PLATFORM");
@@ -25,14 +24,15 @@ void configureQtPlatform()
 #endif
 }
 
-void configureDesktopIntegration(QApplication &app)
+static void configureDesktopIntegration(QApplication &app)
 {
+    Q_UNUSED(app);
     QCoreApplication::setApplicationName("ro-assist");
     QCoreApplication::setApplicationVersion(
         QLatin1String(APP_VERSION));
     QCoreApplication::setOrganizationName("Project-Ro-ASD");
     QCoreApplication::setOrganizationDomain("github.com/Project-Ro-ASD");
-    app.setDesktopFileName("ro-assist");
+    QGuiApplication::setDesktopFileName("ro-assist");
 
 #ifdef Q_OS_LINUX
     const QString desktop = qEnvironmentVariable("XDG_CURRENT_DESKTOP");
@@ -47,24 +47,23 @@ void configureDesktopIntegration(QApplication &app)
         icon = QIcon(QStringLiteral(":/icons/ro-assist.svg"));
     }
     if (!icon.isNull()) {
-        app.setWindowIcon(icon);
+        QGuiApplication::setWindowIcon(icon);
     }
 }
 
-bool hasCompletedAutostartWelcome()
+static bool hasCompletedAutostartWelcome()
 {
-    QSettings settings;
+    const QSettings settings;
     return settings.value(QStringLiteral("autostart/welcomeShown"), false).toBool();
 }
 
-void markAutostartWelcomeCompleted()
+static void markAutostartWelcomeCompleted()
 {
     QSettings settings;
     settings.setValue(QStringLiteral("autostart/welcomeShown"), true);
     settings.sync();
 }
 
-} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -77,9 +76,9 @@ int main(int argc, char *argv[])
         QCoreApplication::translate("MainWindow", "Fedora KDE desktop assistant for system maintenance"));
     parser.addHelpOption();
     parser.addVersionOption();
-    QCommandLineOption autostartOption("autostart",
+    const QCommandLineOption autostartOption("autostart",
         QCoreApplication::translate("MainWindow", "Launch from the desktop autostart entry."));
-    QCommandLineOption smokeTestOption("smoke-test",
+    const QCommandLineOption smokeTestOption("smoke-test",
         QCoreApplication::translate("MainWindow", "Create the UI and exit immediately."));
     parser.addOption(autostartOption);
     parser.addOption(smokeTestOption);
@@ -101,9 +100,9 @@ int main(int argc, char *argv[])
     }
 
     if (parser.isSet(smokeTestOption)) {
-        a.processEvents();
+        QCoreApplication::processEvents();
         return 0;
     }
 
-    return a.exec();
+    return QCoreApplication::exec();
 }
