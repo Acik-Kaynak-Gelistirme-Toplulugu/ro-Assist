@@ -25,7 +25,7 @@ ro-Assist, ozellikle Fedora 43 KDE Plasma sistemleri icin gelistirilmis Qt6 taba
 
 - CMake 3.16+
 - C++17 uyumlu derleyici (`gcc` veya `clang`)
-- Qt6 gelistirme paketleri
+- Qt6 6.6+ gelistirme paketleri
 
 Fedora 43 ornegi:
 

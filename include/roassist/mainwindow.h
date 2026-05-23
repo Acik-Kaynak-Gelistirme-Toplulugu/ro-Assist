@@ -9,23 +9,26 @@
 #include <QProcess>
 #include <QStackedWidget>
 #include <QTimer>
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QNetworkInformation>
 #include <QMenu>
 #include <QAction>
-#include <QString>
+#include <QEvent>
+#include <QTranslator>
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum Language { TR, EN, ES };
     enum Theme { Light, Dark };
     enum OperationType { None, SystemUpdate, LibraryInstall };
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private slots:
     void openWebsite();
@@ -50,7 +53,7 @@ private slots:
     void showAppStoreScreen();
     void showCarouselScreen();
 
-    void changeLanguageAction(QAction *action);
+    void changeLanguage(QAction *action);
     void toggleTheme();
     void onNetworkConnectedChanged(bool isConnected);
     
@@ -61,19 +64,25 @@ private slots:
     void toggleLibraryLogs();
 
 private:
+    QString langFlag(const QString &langCode) const;
+    QString langName(const QString &langCode) const;
+    void loadLanguage(const QString &langCode);
     void setupUi();
     void setupStyle();
     void checkDnfErrors(const QString &output);
     void createCarouselSlides();
     void updateUiTextAndImages();
-    void detectSystemLanguageAndTheme();
+    void detectTheme();
     void appendLog(const QString &text, const QString &color = "#666666");
+    void resetOperationUI(const QString &statusText, bool reenableButton);
     void setInitialUpdateStatus();
     void setOperationRunning(OperationType operation);
     void clearActiveOperation();
     bool isOperationRunning() const;
     bool isLibraryOperationActive() const;
-    QString currentLanguageCode() const;
+
+    QTranslator m_translator;
+    QString m_currentLang;
 
     QLabel *versionLabel;
     QLabel *statusLabel;
@@ -89,19 +98,17 @@ private:
     QProcess *checkUpdateProcess;
     QProcess *checkLibProcess;
 
-    // Main layout
     QStackedWidget *mainStack;
     QWidget *carouselViewWidget;
     QWidget *updateViewWidget;
     QWidget *libraryViewWidget;
     QWidget *appStoreViewWidget;
 
-    // New UI Elements
     QStackedWidget *carousel;
     QTimer *carouselTimer;
 
-    QTextEdit *logConsole;
-    QTextEdit *libraryLogConsole;
+    QPlainTextEdit *logConsole;
+    QPlainTextEdit *libraryLogConsole;
 
     QPushButton *toggleLogBtn;
     QPushButton *toggleLibraryLogBtn;
@@ -117,7 +124,6 @@ private:
     QPushButton *backFromLibraryBtn;
     QPushButton *backFromAppStoreBtn;
 
-    // Slide specific elements
     QLabel *slide1Title;
     QLabel *slide1Desc;
     QPushButton *updateSlideBtn;
@@ -139,13 +145,10 @@ private:
     QLabel *slide5Desc;
     QPushButton *libraryPackageSlideBtn;
 
-    // App Store View special elements
     QLabel *appStoreTitleLabel;
     QLabel *appStorePlaceholderIcon;
     QPushButton *appStoreOpenAppBtn;
 
-    // State
-    Language currentLang;
     Theme currentTheme;
     OperationType activeOperation;
     bool transactionPhaseStarted;

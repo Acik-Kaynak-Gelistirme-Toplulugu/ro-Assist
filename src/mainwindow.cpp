@@ -1,5 +1,4 @@
 #include "roassist/mainwindow.h"
-#include "roassist/ui_texts.h"
 #include "roassist/update_helpers.h"
 
 #include <QDesktopServices>
@@ -14,16 +13,17 @@
 #include <QStyleHints>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <QEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), updateProcess(new QProcess(this)),
       checkUpdateProcess(new QProcess(this)),
       checkLibProcess(new QProcess(this)), carousel(new QStackedWidget(this)),
-      carouselTimer(new QTimer(this)), logConsole(new QTextEdit(this)),
-      libraryLogConsole(new QTextEdit(this)), activeOperation(None),
+      carouselTimer(new QTimer(this)), logConsole(new QPlainTextEdit(this)),
+      libraryLogConsole(new QPlainTextEdit(this)), activeOperation(None),
       transactionPhaseStarted(false), isTerminatingIntentionally(false),
       isNetworkConnected(true), isLibraryInstalled(false) {
-  detectSystemLanguageAndTheme();
+  detectTheme();
 
   QNetworkInformation::loadBackendByFeatures(
       QNetworkInformation::Feature::Reachability);
@@ -37,6 +37,14 @@ MainWindow::MainWindow(QWidget *parent)
                   r == QNetworkInformation::Reachability::Online);
             });
   }
+
+  QLocale locale = QLocale::system();
+  if (locale.language() == QLocale::Turkish)
+    loadLanguage(QStringLiteral("tr"));
+  else if (locale.language() == QLocale::Spanish)
+    loadLanguage(QStringLiteral("es"));
+  else
+    loadLanguage(QStringLiteral("en"));
 
   setupUi();
   updateUiTextAndImages();
@@ -93,6 +101,13 @@ MainWindow::~MainWindow() {
   }
 }
 
+void MainWindow::changeEvent(QEvent *event) {
+  if (event->type() == QEvent::LanguageChange) {
+    updateUiTextAndImages();
+  }
+  QMainWindow::changeEvent(event);
+}
+
 void MainWindow::setOperationRunning(OperationType operation) {
   activeOperation = operation;
   transactionPhaseStarted = false;
@@ -114,27 +129,27 @@ bool MainWindow::isLibraryOperationActive() const {
   return activeOperation == LibraryInstall;
 }
 
-QString MainWindow::currentLanguageCode() const {
-  switch (currentLang) {
-  case TR:
-    return QStringLiteral("tr");
-  case ES:
-    return QStringLiteral("es");
-  case EN:
-  default:
-    return QStringLiteral("en");
-  }
+QString MainWindow::langFlag(const QString &langCode) const {
+  if (langCode == QStringLiteral("tr")) return QStringLiteral("🇹🇷");
+  if (langCode == QStringLiteral("es")) return QStringLiteral("🇪🇸");
+  return QStringLiteral("🇬🇧");
 }
 
-void MainWindow::detectSystemLanguageAndTheme() {
-  QLocale locale = QLocale::system();
-  if (locale.language() == QLocale::Turkish)
-    currentLang = TR;
-  else if (locale.language() == QLocale::Spanish)
-    currentLang = ES;
-  else
-    currentLang = EN;
+QString MainWindow::langName(const QString &langCode) const {
+  if (langCode == QStringLiteral("tr")) return tr("Türkçe");
+  if (langCode == QStringLiteral("es")) return tr("Español");
+  return tr("English");
+}
 
+void MainWindow::loadLanguage(const QString &langCode) {
+  if (m_currentLang == langCode) return;
+  m_currentLang = langCode;
+  qApp->removeTranslator(&m_translator);
+  m_translator.load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode));
+  qApp->installTranslator(&m_translator);
+}
+
+void MainWindow::detectTheme() {
   currentTheme = Light;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
@@ -143,7 +158,6 @@ void MainWindow::detectSystemLanguageAndTheme() {
       currentTheme = Dark;
   }
 #else
-  // Fallback for older Qt versions (Qt < 6.5)
   if (QGuiApplication::palette().color(QPalette::WindowText).lightness() >
       QGuiApplication::palette().color(QPalette::Window).lightness()) {
     currentTheme = Dark;
@@ -174,22 +188,23 @@ void MainWindow::setupUi() {
   langBtn = new QPushButton(this);
   langBtn->setObjectName("languageButton");
   langBtn->setCursor(Qt::PointingHandCursor);
-  langBtn->setFixedSize(130, 42);
+  langBtn->setMinimumSize(130, 42);
+  langBtn->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
   langMenu = new QMenu(langBtn);
-  QAction *actTR = langMenu->addAction("🇹🇷 Türkçe");
-  actTR->setData(QVariant::fromValue((int)TR));
-  QAction *actEN = langMenu->addAction("🇬🇧 English");
-  actEN->setData(QVariant::fromValue((int)EN));
-  QAction *actES = langMenu->addAction("🇪🇸 Español");
-  actES->setData(QVariant::fromValue((int)ES));
+  QAction *actTR = langMenu->addAction(QStringLiteral("🇹🇷 Türkçe"));
+  actTR->setData(QStringLiteral("tr"));
+  QAction *actEN = langMenu->addAction(QStringLiteral("🇬🇧 English"));
+  actEN->setData(QStringLiteral("en"));
+  QAction *actES = langMenu->addAction(QStringLiteral("🇪🇸 Español"));
+  actES->setData(QStringLiteral("es"));
 
   langBtn->setMenu(langMenu);
 
   themeToggleBtn->setFixedSize(110, 42);
   connect(themeToggleBtn, &QPushButton::clicked, this,
           &MainWindow::toggleTheme);
-  connect(langMenu, &QMenu::triggered, this, &MainWindow::changeLanguageAction);
+  connect(langMenu, &QMenu::triggered, this, &MainWindow::changeLanguage);
 
   topLayout->addWidget(themeToggleBtn);
   topLayout->addWidget(langBtn);
@@ -237,7 +252,7 @@ void MainWindow::setupUi() {
   QVBoxLayout *panelLayout = new QVBoxLayout(updatePanel);
   panelLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 
-  versionLabel = new QLabel("0.1.1", this);
+  versionLabel = new QLabel(QStringLiteral(APP_VERSION), this);
   versionLabel->setAlignment(Qt::AlignCenter);
   versionLabel->setObjectName("versionLabel");
   statusLabel = new QLabel("", this);
@@ -377,10 +392,10 @@ void MainWindow::setupUi() {
   appStoreTitleLabel = new QLabel(this);
   appStoreTitleLabel->setObjectName("slideTitle");
   appStoreTitleLabel->setAlignment(Qt::AlignCenter);
-  appStorePlaceholderIcon = new QLabel("🛍️", this);
+  appStorePlaceholderIcon = new QLabel(QStringLiteral("App Store"), this);
   appStorePlaceholderIcon->setAlignment(Qt::AlignCenter);
   appStorePlaceholderIcon->setStyleSheet(
-      "font-size: 150px; background-color: transparent; border: none;");
+      "font-size: 48px; font-weight: bold; color: palette(text); background-color: transparent; border: none;");
   appStoreOpenAppBtn = new QPushButton(this);
   appStoreOpenAppBtn->setObjectName("actionButton");
   appStoreOpenAppBtn->setMinimumSize(320, 70);
@@ -411,9 +426,9 @@ void MainWindow::setupUi() {
   QHBoxLayout *aboutLayout = new QHBoxLayout(bottomBarWidget);
   aboutLayout->setContentsMargins(20, 10, 20, 20);
 
-  QPushButton *aboutBtn = new QPushButton("ℹ️", this);
+  QPushButton *aboutBtn = new QPushButton(QStringLiteral("About"), this);
   aboutBtn->setObjectName("aboutButton");
-  aboutBtn->setFixedSize(50, 50);
+  aboutBtn->setFixedSize(70, 50);
   aboutBtn->setCursor(Qt::PointingHandCursor);
   connect(aboutBtn, &QPushButton::clicked, this, &MainWindow::showAboutDialog);
 
@@ -490,10 +505,10 @@ void MainWindow::createCarouselSlides() {
   socialLayout->addWidget(roAssistGitHubBtn);
   socialLayout->addStretch();
 
-  connect(websiteBtn, &QPushButton::clicked, this, &MainWindow::openWebsite);
-  connect(roAsdGitHubBtn, &QPushButton::clicked, this,
+  connect(websiteBtn, &QAbstractButton::clicked, this, &MainWindow::openWebsite);
+  connect(roAsdGitHubBtn, &QAbstractButton::clicked, this,
           &MainWindow::openRoAsdGitHub);
-  connect(roAssistGitHubBtn, &QPushButton::clicked, this,
+  connect(roAssistGitHubBtn, &QAbstractButton::clicked, this,
           &MainWindow::openRoAssistGitHub);
 
   l2->addStretch();
@@ -583,46 +598,59 @@ void MainWindow::createCarouselSlides() {
 }
 
 void MainWindow::updateUiTextAndImages() {
-  const auto bundle = RoAssist::UiTexts::buildBundle(
-      currentLanguageCode(), currentTheme == Dark, logConsole->isVisible(),
-      libraryLogConsole->isVisible(), isLibraryInstalled);
+  const QString themeEmoji = currentTheme == Dark ? QStringLiteral("☀️ ") : QStringLiteral("🌙 ");
+  themeToggleBtn->setText(themeEmoji + (currentTheme == Dark ? tr("Light") : tr("Dark")));
 
-  langBtn->setText(bundle.languageButton);
-  themeToggleBtn->setText(bundle.themeToggle);
-  networkStatusLabel->setText(bundle.networkStatus);
-  backToCarouselBtn->setText(bundle.backButton);
-  backFromLibraryBtn->setText(bundle.backButton);
-  backFromAppStoreBtn->setText(bundle.backButton);
-  toggleLogBtn->setText(bundle.toggleLogs);
-  toggleLibraryLogBtn->setText(bundle.toggleLibraryLogs);
-  versionLabel->setText(bundle.versionLabel);
-  updateButton->setText(bundle.updateButton);
-  slide1Title->setText(bundle.slide1Title);
-  slide1Desc->setText(bundle.slide1Description);
-  updateSlideBtn->setText(bundle.updateSlideButton);
-  slide2Title->setText(bundle.slide2Title);
-  slide3Title->setText(bundle.slide3Title);
-  slide3Desc->setText(bundle.slide3Description);
-  appStoreSlideBtn->setText(bundle.appStoreSlideButton);
-  appStoreTitleLabel->setText(bundle.appStoreTitle);
-  appStoreOpenAppBtn->setText(bundle.appStoreOpenButton);
-  slide4Title->setText(bundle.slide4Title);
-  slide4Desc->setText(bundle.slide4Description);
-  bozokBtn->setText(bundle.communityButton);
-  slide5Title->setText(bundle.slide5Title);
-  slide5Desc->setText(bundle.slide5Description);
-  libraryPackageSlideBtn->setText(bundle.librarySlideButton);
+  langBtn->setText(langFlag(m_currentLang) + QStringLiteral(" ") + langName(m_currentLang));
+
+  networkStatusLabel->setText(QStringLiteral("⚠ ") + tr("No Internet Connection"));
+
+  backToCarouselBtn->setText(tr("Back"));
+  backFromLibraryBtn->setText(tr("Back"));
+  backFromAppStoreBtn->setText(tr("Back"));
+
+  toggleLogBtn->setText(logConsole->isVisible() ? tr("Hide") : tr("Show Logs"));
+  toggleLibraryLogBtn->setText(libraryLogConsole->isVisible() ? tr("Hide") : tr("Show Logs"));
+
+  versionLabel->setText(
+      QStringLiteral("%1: %2")
+          .arg(tr("Current Version"), QStringLiteral(APP_VERSION)));
+
+  updateButton->setText(tr("Update System"));
+  slide1Title->setText(tr("Update Your System With One Click"));
+  slide1Desc->setText(tr("Updates all system packages, including flatpak and snap."));
+  updateSlideBtn->setText(tr("Go to Update Screen"));
+
+  slide2Title->setText(tr("Follow Us on Social Media"));
+
+  slide3Title->setText(tr("Discover Our App Store"));
+  slide3Desc->setText(tr("Browse our custom application store."));
+  appStoreSlideBtn->setText(tr("Go to App Store"));
+
+  appStoreTitleLabel->setText(tr("Explore Our Custom App Store"));
+  appStoreOpenAppBtn->setText(tr("Open App / Store"));
+
+  slide4Title->setText(tr("Who Are We? Discover Our Community"));
+  slide4Desc->setText(tr("As Yozgat Bozok University Open Source Software Development Club, we work for the ro-ASD project."));
+  bozokBtn->setText(tr("Join the Club"));
+
+  slide5Title->setText(tr("Game Library"));
+  slide5Desc->setText(tr("You can download and update game libraries."));
+  libraryPackageSlideBtn->setText(tr("Open Library Screen"));
+
   if (activeOperation != LibraryInstall) {
-    libraryStatusLabel->setText(bundle.libraryStatusIdle);
+    libraryStatusLabel->setText(tr("Start Download"));
   }
-  logConsole->setPlaceholderText(bundle.logPlaceholder);
-  libraryLogConsole->setPlaceholderText(bundle.logPlaceholder);
-  roAsdGitHubBtn->setText("ro-ASD OS\nRepo");
-  roAssistGitHubBtn->setText("ro-Assist\nRepo");
-  websiteBtn->setText(bundle.websiteButton);
+  logConsole->setPlaceholderText(tr("Logs..."));
+  libraryLogConsole->setPlaceholderText(tr("Logs..."));
+
+  roAsdGitHubBtn->setText(QStringLiteral("ro-ASD OS\nRepo"));
+  roAssistGitHubBtn->setText(QStringLiteral("ro-Assist\nRepo"));
+  websiteBtn->setText(tr("Website"));
+
   if (activeOperation != LibraryInstall &&
       checkLibProcess->state() == QProcess::NotRunning) {
-    libraryInstallButton->setText(bundle.libraryActionButton);
+    libraryInstallButton->setText(isLibraryInstalled ? tr("Update Libraries") : tr("Download Libraries"));
   }
 
   setInitialUpdateStatus();
@@ -632,11 +660,7 @@ void MainWindow::setInitialUpdateStatus() {
   if (updateProcess->state() != QProcess::NotRunning || transactionPhaseStarted)
     return;
 
-  statusLabel->setText(RoAssist::UiTexts::buildBundle(
-                           currentLanguageCode(), currentTheme == Dark,
-                           logConsole->isVisible(),
-                           libraryLogConsole->isVisible(), isLibraryInstalled)
-                           .checkingUpdates);
+  statusLabel->setText(tr("Checking for updates..."));
 }
 
 void MainWindow::setupStyle() {
@@ -664,7 +688,7 @@ void MainWindow::setupStyle() {
         QLabel#slideTitle { font-size: 34px; font-weight: 800; margin-bottom: 8px; color: %3; }
         QLabel#slideDesc { font-size: 17px; color: %4; line-height: 1.5; }
         
-        QTextEdit#logConsole {
+        QPlainTextEdit#logConsole {
             background-color: palette(base); color: palette(text); border: 1px solid %5;
             border-radius: 8px; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 12px;
             padding: 8px;
@@ -707,7 +731,7 @@ void MainWindow::setupStyle() {
         QPushButton#roundButton { border-radius: 60px; font-size: 46px; background-color: %10; border: 2px solid %7; }
         QPushButton#roundButton:hover { background-color: %2; border: 2px solid %8; color: %7; }
         
-        QPushButton#aboutButton { border-radius: 25px; font-size: 22px; border: none; background-color: transparent; }
+        QPushButton#aboutButton { border-radius: 8px; font-size: 13px; font-weight: bold; border: 1px solid %5; background-color: transparent; padding: 4px 12px; }
         QPushButton#aboutButton:hover { background-color: %6; }
         
         QProgressBar { 
@@ -744,8 +768,7 @@ void MainWindow::showLibraryScreen() {
   carouselTimer->stop();
 
   libraryInstallButton->setEnabled(false);
-  libraryInstallButton->setText(
-      RoAssist::UiTexts::checkingLibraries(currentLanguageCode()));
+  libraryInstallButton->setText(tr("Checking..."));
 
   if (qEnvironmentVariableIsEmpty("RO_ASSIST_SKIP_SYSTEM_CHECKS") &&
       checkLibProcess->state() == QProcess::NotRunning) {
@@ -754,13 +777,7 @@ void MainWindow::showLibraryScreen() {
                                       << "vulkan-loader" << "vulkan-tools");
   } else if (!qEnvironmentVariableIsEmpty("RO_ASSIST_SKIP_SYSTEM_CHECKS")) {
     libraryInstallButton->setEnabled(true);
-    libraryInstallButton->setText(RoAssist::UiTexts::buildBundle(
-                                      currentLanguageCode(),
-                                      currentTheme == Dark,
-                                      logConsole->isVisible(),
-                                      libraryLogConsole->isVisible(),
-                                      isLibraryInstalled)
-                                      .libraryActionButton);
+    libraryInstallButton->setText(isLibraryInstalled ? tr("Update Libraries") : tr("Download Libraries"));
   }
 }
 void MainWindow::showAppStoreScreen() {
@@ -778,11 +795,9 @@ void MainWindow::showCarouselScreen() {
   }
 }
 
-void MainWindow::changeLanguageAction(QAction *action) {
-  if (!action)
-    return;
-  currentLang = static_cast<Language>(action->data().toInt());
-  updateUiTextAndImages();
+void MainWindow::changeLanguage(QAction *action) {
+  if (!action) return;
+  loadLanguage(action->data().toString());
 }
 
 void MainWindow::toggleTheme() {
@@ -817,12 +832,11 @@ void MainWindow::openRoAssistGitHub() {
       QUrl("https://github.com/Project-Ro-ASD/ro-Assist"));
 }
 void MainWindow::openBozokCommunity() {
-  QDesktopServices::openUrl(QUrl("https://github.com/Project-Ro-ASD"));
+  QDesktopServices::openUrl(QUrl("https://github.com/orgs/Project-Ro-ASD/discussions"));
 }
 void MainWindow::showAboutDialog() {
   QDialog dialog(this);
-  dialog.setWindowTitle(
-      RoAssist::UiTexts::aboutTitle(currentLanguageCode()));
+  dialog.setWindowTitle(tr("About"));
   dialog.setFixedSize(550, 400);
   dialog.setStyleSheet(this->styleSheet() +
                        QString(" QDialog { background-color: %1; "
@@ -843,9 +857,7 @@ void MainWindow::showAboutDialog() {
   QLabel *descLabel = new QLabel(&dialog);
   descLabel->setWordWrap(true);
   descLabel->setAlignment(Qt::AlignCenter);
-  QString desc =
-      RoAssist::UiTexts::aboutDescription(currentLanguageCode());
-  descLabel->setText(desc);
+  descLabel->setText(tr("Yozgat Bozok University Open Source Software Development Club ro-ASD project system management tool."));
   descLabel->setStyleSheet(
       "font-size: 16px; color: " +
       QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
@@ -855,14 +867,12 @@ void MainWindow::showAboutDialog() {
   infoLabel->setText(
       QString("<span style='font-size: 15px;'><b>%1:</b> Ebubekir "
               "Bulut<br><br><b>%2:</b> 2026</span>")
-          .arg(RoAssist::UiTexts::developerLabel(currentLanguageCode()))
-          .arg(RoAssist::UiTexts::yearLabel(currentLanguageCode())));
+          .arg(tr("Developer"))
+          .arg(tr("Year")));
   infoLabel->setStyleSheet(
       "color: " + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
 
-  QPushButton *okBtn = new QPushButton(
-      RoAssist::UiTexts::closeLabel(currentLanguageCode()),
-      &dialog);
+  QPushButton *okBtn = new QPushButton(tr("Close"), &dialog);
   okBtn->setObjectName("actionButton");
   okBtn->setFixedSize(200, 50);
   okBtn->setCursor(Qt::PointingHandCursor);
@@ -882,22 +892,18 @@ void MainWindow::showAboutDialog() {
 
 void MainWindow::dummyAppStoreAction() {
   QMessageBox::information(
-      this,
-      RoAssist::UiTexts::storeVersionTitle(currentLanguageCode()),
-      RoAssist::UiTexts::storeVersionMessage(currentLanguageCode()));
+      this, tr("Store Version"), tr("Integration coming soon!"));
 }
 
 void MainWindow::startLibraryPackageInstall() {
   if (!isNetworkConnected) {
     QMessageBox::warning(
-        this, RoAssist::UiTexts::errorTitle(currentLanguageCode()),
-        RoAssist::UiTexts::noInternetMessage(currentLanguageCode()));
+        this, tr("Error"), tr("No internet connection!"));
     return;
   }
   if (isOperationRunning()) {
     QMessageBox::information(
-        this, RoAssist::UiTexts::infoTitle(currentLanguageCode()),
-        RoAssist::UiTexts::operationRunningMessage(currentLanguageCode()));
+        this, tr("Info"), tr("Another operation is already running."));
     return;
   }
 
@@ -905,12 +911,10 @@ void MainWindow::startLibraryPackageInstall() {
   libraryProgressBar->setRange(0, 100);
   libraryProgressBar->setValue(0);
   libraryProgressBar->show();
-  libraryStatusLabel->setText(
-      RoAssist::UiTexts::librariesInstalling(currentLanguageCode()));
+  libraryStatusLabel->setText(tr("Installing libraries..."));
 
   libraryLogConsole->clear();
-  appendLog(RoAssist::UiTexts::librariesInstalling(currentLanguageCode()),
-            "#0066cc");
+  appendLog(tr("Installing libraries..."), "#0066cc");
   setOperationRunning(LibraryInstall);
 
   QString action = isLibraryInstalled ? "upgrade" : "install";
@@ -923,14 +927,12 @@ void MainWindow::startLibraryPackageInstall() {
 void MainWindow::startUpdate() {
   if (!isNetworkConnected) {
     QMessageBox::warning(
-        this, RoAssist::UiTexts::errorTitle(currentLanguageCode()),
-        RoAssist::UiTexts::noInternetMessage(currentLanguageCode()));
+        this, tr("Error"), tr("No internet connection!"));
     return;
   }
   if (isOperationRunning()) {
     QMessageBox::information(
-        this, RoAssist::UiTexts::infoTitle(currentLanguageCode()),
-        RoAssist::UiTexts::operationRunningMessage(currentLanguageCode()));
+        this, tr("Info"), tr("Another operation is already running."));
     return;
   }
 
@@ -939,11 +941,9 @@ void MainWindow::startUpdate() {
   progressBar->setValue(0);
   progressBar->show();
 
-  statusLabel->setText(
-      RoAssist::UiTexts::updateStarting(currentLanguageCode()));
+  statusLabel->setText(tr("System update starting..."));
   logConsole->clear();
-  appendLog(RoAssist::UiTexts::updateStarting(currentLanguageCode()),
-            "#0066cc");
+  appendLog(tr("System update starting..."), "#0066cc");
   setOperationRunning(SystemUpdate);
 
   updateProcess->start("pkexec", QStringList()
@@ -969,7 +969,7 @@ void MainWindow::checkDnfErrors(const QString &output) {
   if (output.contains("Waiting for process", Qt::CaseInsensitive) ||
       output.contains("Another app is currently holding the yum lock",
                       Qt::CaseInsensitive)) {
-    QString msg = RoAssist::UiTexts::systemBusy(currentLanguageCode());
+    QString msg = tr("System is busy...");
     if (isLibraryOperationActive())
       libraryStatusLabel->setText(msg);
     else
@@ -978,7 +978,7 @@ void MainWindow::checkDnfErrors(const QString &output) {
   if (output.contains("Error: Failed to download metadata",
                       Qt::CaseInsensitive) ||
       output.contains("Could not resolve host", Qt::CaseInsensitive)) {
-    QString msg = RoAssist::UiTexts::networkError(currentLanguageCode());
+    QString msg = tr("Network Error");
     if (isLibraryOperationActive()) {
       libraryStatusLabel->setText(msg);
       libraryInstallButton->setEnabled(true);
@@ -993,7 +993,7 @@ void MainWindow::handleUpdateOutput() {
   QString output = QString::fromUtf8(updateProcess->readAllStandardOutput());
   QStringList lines = output.split('\n', Qt::SkipEmptyParts);
   for (const QString &line : lines) {
-    appendLog(line, currentTheme == Dark ? "#cccccc" : "#e60909ff");
+    appendLog(line, currentTheme == Dark ? "#cccccc" : "#e60909");
   }
   checkDnfErrors(output);
 
@@ -1004,8 +1004,9 @@ void MainWindow::handleUpdateOutput() {
   if (const auto progress =
           RoAssist::UpdateHelpers::parseTransactionProgress(output)) {
     transactionPhaseStarted = true;
-    QString t = RoAssist::UiTexts::installingPackages(
-        currentLanguageCode(), progress->current, progress->total);
+    QString t = tr("Installing packages... (%1/%2)")
+                    .arg(progress->current)
+                    .arg(progress->total);
     if (isLibraryOperationActive()) {
       libraryProgressBar->setRange(0, progress->total);
       libraryProgressBar->setValue(progress->current);
@@ -1020,8 +1021,7 @@ void MainWindow::handleUpdateOutput() {
   if (!transactionPhaseStarted) {
     if (const auto percent =
             RoAssist::UpdateHelpers::parseDownloadPercent(output)) {
-      QString t = RoAssist::UiTexts::downloading(currentLanguageCode(),
-                                                 *percent);
+      QString t = tr("Downloading... %1%").arg(*percent);
       if (isLibraryOperationActive()) {
         libraryProgressBar->setRange(0, 100);
         libraryProgressBar->setValue(*percent);
@@ -1051,26 +1051,10 @@ void MainWindow::handleUpdateErrorOutput() {
       errorOutput.contains("try again", Qt::CaseInsensitive)) {
     isTerminatingIntentionally = true;
     updateProcess->terminate();
-    QString t =
-        RoAssist::UiTexts::wrongPasswordShort(currentLanguageCode());
-    if (isLibraryOperationActive()) {
-      libraryProgressBar->hide();
-      libraryProgressBar->setValue(0);
-      libraryStatusLabel->setText(t);
-      libraryInstallButton->setEnabled(true);
-      if (!libraryLogConsole->isVisible())
-        toggleLibraryLogs();
-    } else {
-      progressBar->hide();
-      progressBar->setValue(0);
-      statusLabel->setText(t);
-      updateButton->setEnabled(true);
-      if (!logConsole->isVisible())
-        toggleUpdateLogs();
-    }
+    resetOperationUI(tr("Wrong Password!"), true);
     QMessageBox::critical(
-        this, RoAssist::UiTexts::errorTitle(currentLanguageCode()),
-        RoAssist::UiTexts::wrongPasswordDetail(currentLanguageCode()));
+        this, tr("Error"),
+        tr("Wrong password or no sudo permission!"));
   }
 }
 
@@ -1082,16 +1066,13 @@ void MainWindow::handleCheckUpdateFinished(int exitCode,
   switch (RoAssist::UpdateHelpers::classifyCheckUpdateResult(exitCode,
                                                              exitStatus)) {
   case RoAssist::UpdateHelpers::UpdateCheckStatus::UpdatesAvailable:
-    statusLabel->setText(
-        RoAssist::UiTexts::updateAvailable(currentLanguageCode()));
+    statusLabel->setText(tr("System Update Available"));
     break;
   case RoAssist::UpdateHelpers::UpdateCheckStatus::UpToDate:
-    statusLabel->setText(
-        RoAssist::UiTexts::systemUpToDate(currentLanguageCode()));
+    statusLabel->setText(tr("Your system is currently up to date!"));
     break;
   case RoAssist::UpdateHelpers::UpdateCheckStatus::Failed:
-    statusLabel->setText(
-        RoAssist::UiTexts::updateCheckFailed(currentLanguageCode()));
+    statusLabel->setText(tr("Update check failed."));
     break;
   }
 }
@@ -1116,19 +1097,14 @@ void MainWindow::handleUpdateFinished(int exitCode,
       isLibraryInstalled = true;
       libraryProgressBar->setRange(0, 100);
       libraryProgressBar->setValue(100);
-      libraryStatusLabel->setText(
-          RoAssist::UiTexts::processCompleted(currentLanguageCode()));
-      appendLog(RoAssist::UiTexts::librariesInstalled(currentLanguageCode()),
-                "#00cc00");
+      libraryStatusLabel->setText(tr("Process Completed!"));
+      appendLog(tr("Libraries installed."), "#00cc00");
       updateUiTextAndImages();
     } else {
       if (!isTerminatingIntentionally) {
         libraryProgressBar->hide();
-        libraryStatusLabel->setText(
-            RoAssist::UiTexts::processFailed(currentLanguageCode()));
-        appendLog(RoAssist::UiTexts::processFailedDetails(
-                      currentLanguageCode(), true),
-                  "#ff4444");
+        libraryStatusLabel->setText(tr("Process Failed!"));
+        appendLog(tr("Error occurred in process."), "#ff4444");
         if (!libraryLogConsole->isVisible())
           toggleLibraryLogs();
       }
@@ -1138,19 +1114,13 @@ void MainWindow::handleUpdateFinished(int exitCode,
     if (exitStatus == QProcess::NormalExit && exitCode == 0) {
       progressBar->setRange(0, 100);
       progressBar->setValue(100);
-      statusLabel->setText(
-          RoAssist::UiTexts::processCompleted(currentLanguageCode()));
-      appendLog(RoAssist::UiTexts::allOperationsCompleted(
-                    currentLanguageCode()),
-                "#00cc00");
+      statusLabel->setText(tr("Process Completed!"));
+      appendLog(tr("All operations completed successfully."), "#00cc00");
     } else {
       if (!isTerminatingIntentionally) {
         progressBar->hide();
-        statusLabel->setText(
-            RoAssist::UiTexts::processFailed(currentLanguageCode()));
-        appendLog(RoAssist::UiTexts::processFailedDetails(
-                      currentLanguageCode(), false),
-                  "#ff4444");
+        statusLabel->setText(tr("Process Failed!"));
+        appendLog(tr("Error occurred during process."), "#ff4444");
         if (!logConsole->isVisible())
           toggleUpdateLogs();
       }
@@ -1165,29 +1135,12 @@ void MainWindow::handleUpdateProcessError(QProcess::ProcessError error) {
 
   QString errorMsg =
       (error == QProcess::FailedToStart)
-          ? RoAssist::UiTexts::componentFailedToStart(currentLanguageCode())
-          : RoAssist::UiTexts::componentCrashed(currentLanguageCode());
+          ? tr("Component failed to start.")
+          : tr("Component crashed.");
 
   QMessageBox::critical(
-      this, RoAssist::UiTexts::criticalErrorTitle(currentLanguageCode()),
-      errorMsg);
+      this, tr("Critical Error"), errorMsg);
 
-  if (isLibraryOperationActive()) {
-    libraryProgressBar->hide();
-    libraryInstallButton->setEnabled(true);
-    libraryStatusLabel->setText(
-        RoAssist::UiTexts::criticalErrorPrefix(currentLanguageCode()) +
-        errorMsg);
-    if (!libraryLogConsole->isVisible())
-      toggleLibraryLogs();
-  } else {
-    progressBar->hide();
-    updateButton->setEnabled(true);
-    statusLabel->setText(
-        RoAssist::UiTexts::criticalErrorPrefix(currentLanguageCode()) +
-        errorMsg);
-    if (!logConsole->isVisible())
-      toggleUpdateLogs();
-  }
+  resetOperationUI(tr("Critical Error: ") + errorMsg, true);
   clearActiveOperation();
 }

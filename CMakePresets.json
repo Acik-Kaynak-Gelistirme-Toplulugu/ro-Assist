@@ -11,9 +11,7 @@
       "displayName": "Default",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/ninja",
-      "environment": {
-        "CCACHE_DISABLE": "1"
-      },
+      "environment": {},
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }

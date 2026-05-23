@@ -3,10 +3,25 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QIcon>
+#include <QLocale>
 #include <QSettings>
 #include <QStyleFactory>
+#include <QTranslator>
 
 namespace {
+
+QTranslator *loadInitialTranslator()
+{
+    QTranslator *translator = new QTranslator;
+    QLocale locale = QLocale::system();
+    QString langCode = QStringLiteral("en");
+    if (locale.language() == QLocale::Turkish)
+        langCode = QStringLiteral("tr");
+    else if (locale.language() == QLocale::Spanish)
+        langCode = QStringLiteral("es");
+    translator->load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode));
+    return translator;
+}
 
 void configureQtPlatform()
 {
@@ -27,7 +42,7 @@ void configureQtPlatform()
 void configureDesktopIntegration(QApplication &app)
 {
     QCoreApplication::setApplicationName("ro-assist");
-    QCoreApplication::setApplicationVersion("0.1.1");
+    QCoreApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
     QCoreApplication::setOrganizationName("Project-Ro-ASD");
     QCoreApplication::setOrganizationDomain("github.com/Project-Ro-ASD");
     app.setDesktopFileName("ro-assist");
@@ -70,12 +85,18 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
+    QTranslator *initialTranslator = loadInitialTranslator();
+    a.installTranslator(initialTranslator);
+
     QCommandLineParser parser;
-    parser.setApplicationDescription("Fedora KDE desktop assistant for system maintenance");
+    parser.setApplicationDescription(
+        QCoreApplication::translate("MainWindow", "Fedora KDE desktop assistant for system maintenance"));
     parser.addHelpOption();
     parser.addVersionOption();
-    QCommandLineOption autostartOption("autostart", "Launch from the desktop autostart entry.");
-    QCommandLineOption smokeTestOption("smoke-test", "Create the UI and exit immediately.");
+    QCommandLineOption autostartOption("autostart",
+        QCoreApplication::translate("MainWindow", "Launch from the desktop autostart entry."));
+    QCommandLineOption smokeTestOption("smoke-test",
+        QCoreApplication::translate("MainWindow", "Create the UI and exit immediately."));
     parser.addOption(autostartOption);
     parser.addOption(smokeTestOption);
     parser.process(a);

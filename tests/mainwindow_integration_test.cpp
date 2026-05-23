@@ -27,24 +27,24 @@ void MainWindowIntegrationTest::languageSwitchUpdatesPrimaryTexts()
     QVERIFY(updateButton);
 
     QAction english;
-    english.setData(static_cast<int>(MainWindow::EN));
-    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+    english.setData(QStringLiteral("en"));
+    QMetaObject::invokeMethod(&window, "changeLanguage",
                               Q_ARG(QAction *, &english));
-    QCOMPARE(languageButton->text(), QString("🇬🇧 English"));
+    QVERIFY(languageButton->text().contains("English"));
     QCOMPARE(updateButton->text(), QString("Update System"));
 
     QAction turkish;
-    turkish.setData(static_cast<int>(MainWindow::TR));
-    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+    turkish.setData(QStringLiteral("tr"));
+    QMetaObject::invokeMethod(&window, "changeLanguage",
                               Q_ARG(QAction *, &turkish));
-    QCOMPARE(languageButton->text(), QString("🇹🇷 Türkçe"));
+    QVERIFY(languageButton->text().contains("Türkçe"));
     QCOMPARE(updateButton->text(), QString("Sistemi Güncelle"));
 
     QAction spanish;
-    spanish.setData(static_cast<int>(MainWindow::ES));
-    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+    spanish.setData(QStringLiteral("es"));
+    QMetaObject::invokeMethod(&window, "changeLanguage",
                               Q_ARG(QAction *, &spanish));
-    QCOMPARE(languageButton->text(), QString("🇪🇸 Español"));
+    QVERIFY(languageButton->text().contains("Español"));
     QCOMPARE(updateButton->text(), QString("Actualizar Sistema"));
 }
 

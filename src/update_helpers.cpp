@@ -6,8 +6,8 @@ namespace RoAssist::UpdateHelpers {
 
 QString buildSystemUpdateCommand() {
   return QStringLiteral(
-      "dnf upgrade -y && "
-      "if command -v flatpak > /dev/null; then flatpak update -y; fi && "
+      "LANG=C dnf upgrade -y && "
+      "if command -v flatpak > /dev/null; then LANG=C flatpak update -y; fi && "
       "if command -v snap > /dev/null; then snap refresh; fi");
 }
 

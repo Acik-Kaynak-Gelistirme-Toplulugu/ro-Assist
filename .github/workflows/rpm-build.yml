@@ -26,7 +26,7 @@ jobs:
   build-rpm:
     name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:41
+    container: fedora:43
     timeout-minutes: 45
 
     strategy:

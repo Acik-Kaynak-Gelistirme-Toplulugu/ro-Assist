@@ -25,7 +25,7 @@ ro-Assist is a Qt6 desktop assistant built specifically for Fedora 43 KDE Plasma
 
 - CMake 3.16+
 - C++17 compatible compiler (`gcc` or `clang`)
-- Qt6 development packages
+- Qt6 6.6+ development packages
 
 Fedora 43 example:
 

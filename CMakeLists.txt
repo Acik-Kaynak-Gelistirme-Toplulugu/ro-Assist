@@ -11,22 +11,28 @@ set(CMAKE_AUTORCC ON)
 
 enable_testing()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network Test)
+find_package(Qt6 6.6 REQUIRED COMPONENTS LinguistTools Widgets Network Test)
 
 set(RO_ASSIST_SOURCES
     include/roassist/mainwindow.h
-    include/roassist/ui_texts.h
     include/roassist/update_helpers.h
     src/main.cpp
     src/mainwindow.cpp
-    src/ui_texts.cpp
     src/update_helpers.cpp
     resources/resources.qrc
 )
 
 add_executable(ro-assist ${RO_ASSIST_SOURCES})
 target_include_directories(ro-assist PRIVATE include)
+target_compile_definitions(ro-assist PRIVATE APP_VERSION="${PROJECT_VERSION}")
 target_link_libraries(ro-assist PRIVATE Qt6::Widgets Qt6::Network)
+
+qt_add_translations(ro-assist
+    TS_FILES
+        translations/ro-assist_en.ts
+        translations/ro-assist_tr.ts
+        translations/ro-assist_es.ts
+)
 
 configure_file(packaging/linux/ro-assist.in
         ${CMAKE_CURRENT_BINARY_DIR}/packaging/ro-assist
@@ -46,12 +52,17 @@ install(FILES resources/icons/ro-assist.svg
 
 add_executable(ro-assist-ui-tests
     include/roassist/mainwindow.h
-    include/roassist/ui_texts.h
+    include/roassist/update_helpers.h
     src/mainwindow.cpp
-    src/ui_texts.cpp
     src/update_helpers.cpp
     resources/resources.qrc
     tests/mainwindow_integration_test.cpp
+)
+qt_add_translations(ro-assist-ui-tests
+    TS_FILES
+        translations/ro-assist_en.ts
+        translations/ro-assist_tr.ts
+        translations/ro-assist_es.ts
 )
 target_include_directories(ro-assist-ui-tests PRIVATE include)
 target_link_libraries(ro-assist-ui-tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)

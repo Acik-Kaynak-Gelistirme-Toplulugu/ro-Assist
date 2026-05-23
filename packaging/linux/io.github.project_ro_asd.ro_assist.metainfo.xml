@@ -3,15 +3,15 @@
   <id>io.github.project_ro_asd.ro_assist</id>
   <name>ro-Assist</name>
   <summary>Ro-ASD update and maintenance assistant</summary>
-  <summary xml:lang="tr">Ro-ASD update and maintenance assistant</summary>
-  <summary xml:lang="es">Ro-ASD update and maintenance assistant</summary>
+  <summary xml:lang="tr">Ro-ASD güncelleme ve bakım asistanı</summary>
+  <summary xml:lang="es">Asistente de actualización y mantenimiento de Ro-ASD</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <launchable type="desktop-id">ro-assist.desktop</launchable>
   <description>
     <p>ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.</p>
-    <p xml:lang="tr">ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.</p>
-    <p xml:lang="es">ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.</p>
+    <p xml:lang="tr">ro-Assist, Ro-ASD sistemi güncellemeleri ve bakım iş akışlarına odaklanan bir Qt masaüstü uygulamasıdır.</p>
+    <p xml:lang="es">ro-Assist es una aplicación de escritorio Qt centrada en las actualizaciones del sistema Ro-ASD y los flujos de trabajo de mantenimiento.</p>
   </description>
   <categories>
     <category>System</category>
