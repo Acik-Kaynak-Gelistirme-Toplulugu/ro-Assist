@@ -123,6 +123,7 @@ private:
     QPushButton *backToCarouselBtn;
     QPushButton *backFromLibraryBtn;
     QPushButton *backFromAppStoreBtn;
+    QPushButton *aboutBtn;
 
     QLabel *slide1Title;
     QLabel *slide1Desc;

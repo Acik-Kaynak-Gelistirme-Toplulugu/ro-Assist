@@ -1,7 +1,7 @@
 Name:           ro-assist
 Version:        0.1.1
 Release:        1%{?dist}
-Summary:        Fedora Linux Sistem Asistanı
+Summary:        System management and update assistant for Fedora Linux
 ExclusiveArch:  x86_64 aarch64
 
 License:        GPLv3+
@@ -11,6 +11,7 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
 BuildRequires:  qt6-qtbase-devel
+BuildRequires:  qt6-qttools-devel
 BuildRequires:  desktop-file-utils
 BuildRequires:  appstream
 

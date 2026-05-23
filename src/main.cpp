@@ -3,25 +3,10 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QIcon>
-#include <QLocale>
 #include <QSettings>
 #include <QStyleFactory>
-#include <QTranslator>
 
 namespace {
-
-QTranslator *loadInitialTranslator()
-{
-    QTranslator *translator = new QTranslator;
-    QLocale locale = QLocale::system();
-    QString langCode = QStringLiteral("en");
-    if (locale.language() == QLocale::Turkish)
-        langCode = QStringLiteral("tr");
-    else if (locale.language() == QLocale::Spanish)
-        langCode = QStringLiteral("es");
-    translator->load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode));
-    return translator;
-}
 
 void configureQtPlatform()
 {
@@ -84,9 +69,6 @@ int main(int argc, char *argv[])
     configureQtPlatform();
 
     QApplication a(argc, argv);
-
-    QTranslator *initialTranslator = loadInitialTranslator();
-    a.installTranslator(initialTranslator);
 
     QCommandLineParser parser;
     parser.setApplicationDescription(

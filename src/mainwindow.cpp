@@ -145,7 +145,9 @@ void MainWindow::loadLanguage(const QString &langCode) {
   if (m_currentLang == langCode) return;
   m_currentLang = langCode;
   qApp->removeTranslator(&m_translator);
-  m_translator.load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode));
+  if (!m_translator.load(QStringLiteral(":/translations/ro-assist_%1.qm").arg(langCode))) {
+    qWarning("Failed to load translation file for: %s", qPrintable(langCode));
+  }
   qApp->installTranslator(&m_translator);
 }
 
@@ -426,7 +428,7 @@ void MainWindow::setupUi() {
   QHBoxLayout *aboutLayout = new QHBoxLayout(bottomBarWidget);
   aboutLayout->setContentsMargins(20, 10, 20, 20);
 
-  QPushButton *aboutBtn = new QPushButton(QStringLiteral("About"), this);
+  aboutBtn = new QPushButton(tr("About"), this);
   aboutBtn->setObjectName("aboutButton");
   aboutBtn->setFixedSize(70, 50);
   aboutBtn->setCursor(Qt::PointingHandCursor);
@@ -647,6 +649,7 @@ void MainWindow::updateUiTextAndImages() {
   roAsdGitHubBtn->setText(QStringLiteral("ro-ASD OS\nRepo"));
   roAssistGitHubBtn->setText(QStringLiteral("ro-Assist\nRepo"));
   websiteBtn->setText(tr("Website"));
+  aboutBtn->setText(tr("About"));
 
   if (activeOperation != LibraryInstall &&
       checkLibProcess->state() == QProcess::NotRunning) {

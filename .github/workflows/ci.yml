@@ -41,6 +41,7 @@ jobs:
             cmake \
             ninja-build \
             qt6-qtbase-devel \
+            qt6-qttools-devel \
             desktop-file-utils \
             appstream
 

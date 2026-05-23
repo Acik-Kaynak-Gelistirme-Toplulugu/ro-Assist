@@ -52,7 +52,8 @@ jobs:
             createrepo_c \
             desktop-file-utils \
             appstream \
-            qt6-qtbase-devel
+            qt6-qtbase-devel \
+            qt6-qttools-devel
 
       - name: Build package
         run: |
