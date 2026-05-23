@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QLatin1String>
 #include <QLocale>
 #include <QMessageBox>
 #include <QPalette>
@@ -22,9 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
       checkUpdateProcess(new QProcess(this)),
       checkLibProcess(new QProcess(this)), carousel(new QStackedWidget(this)),
       carouselTimer(new QTimer(this)), logConsole(new QPlainTextEdit(this)),
-      libraryLogConsole(new QPlainTextEdit(this)), activeOperation(None),
-      transactionPhaseStarted(false), isTerminatingIntentionally(false),
-      isNetworkConnected(true), isLibraryInstalled(false) {
+      libraryLogConsole(new QPlainTextEdit(this)) {
   detectTheme();
 
   QNetworkInformation::loadBackendByFeatures(
@@ -76,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
           &MainWindow::handleCheckLibFinished);
 
   connect(carouselTimer, &QTimer::timeout, this, &MainWindow::nextSlide);
-  carouselTimer->start(5000);
+  carouselTimer->start(CAROUSEL_INTERVAL_MS);
 
   setInitialUpdateStatus();
   if (qEnvironmentVariableIsEmpty("RO_ASSIST_SKIP_SYSTEM_CHECKS")) {
@@ -695,7 +694,7 @@ void MainWindow::setupStyle() {
   const QString accent2 = currentTheme == Dark ? "#B9B4C7" : "#92C7CF";
 
   const QString style =
-      QString(R"(
+      QStringLiteral(R"(
         * { outline: none; }
         QMainWindow { background-color: %1; }
         QWidget#panelWidget { 
@@ -769,14 +768,14 @@ void MainWindow::setupStyle() {
 void MainWindow::nextSlide() {
   const int next = (carousel->currentIndex() + 1) % carousel->count();
   carousel->setCurrentIndex(next);
-  carouselTimer->start(5000);
+  carouselTimer->start(CAROUSEL_INTERVAL_MS);
 }
 
 void MainWindow::prevSlide() {
   const int prev =
       (carousel->currentIndex() - 1 + carousel->count()) % carousel->count();
   carousel->setCurrentIndex(prev);
-  carouselTimer->start(5000);
+  carouselTimer->start(CAROUSEL_INTERVAL_MS);
 }
 
 void MainWindow::showUpdateScreen() {
@@ -806,7 +805,7 @@ void MainWindow::showAppStoreScreen() {
 }
 void MainWindow::showCarouselScreen() {
   mainStack->setCurrentIndex(0);
-  carouselTimer->start(5000);
+  carouselTimer->start(CAROUSEL_INTERVAL_MS);
   if (!transactionPhaseStarted &&
       checkUpdateProcess->state() == QProcess::NotRunning &&
       qEnvironmentVariableIsEmpty("RO_ASSIST_SKIP_SYSTEM_CHECKS")) {
@@ -859,8 +858,8 @@ void MainWindow::showAboutDialog() {
   dialog.setWindowTitle(tr("About"));
   dialog.setFixedSize(550, 400);
   dialog.setStyleSheet(this->styleSheet() +
-                       QString(" QDialog { background-color: %1; "
-                               "border-radius: 16px; border: 1px solid %2; }")
+                       QStringLiteral(" QDialog { background-color: %1; "
+                                      "border-radius: 16px; border: 1px solid %2; }")
                            .arg(currentTheme == Dark ? "#352F44" : "#FBF9F1",
                                 currentTheme == Dark ? "#5C5470" : "#E5E1DA"));
 
@@ -871,7 +870,7 @@ void MainWindow::showAboutDialog() {
   auto *titleLabel = new QLabel("ro-Assist", &dialog);
   titleLabel->setAlignment(Qt::AlignCenter);
   titleLabel->setStyleSheet(
-      QString("font-size: 42px; font-weight: 900; color: %1;")
+      QStringLiteral("font-size: 42px; font-weight: 900; color: %1;")
           .arg(currentTheme == Dark ? "#FAF0E6" : "#352F44"));
 
   auto *descLabel = new QLabel(&dialog);
@@ -885,12 +884,12 @@ void MainWindow::showAboutDialog() {
   auto *infoLabel = new QLabel(&dialog);
   infoLabel->setAlignment(Qt::AlignCenter);
   infoLabel->setText(
-      QString("<span style='font-size: 15px;'><b>%1:</b> Ebubekir "
-              "Bulut<br><br><b>%2:</b> 2026</span>")
+      QStringLiteral("<span style='font-size: 15px;'><b>%1:</b> Ebubekir "
+                     "Bulut<br><br><b>%2:</b> 2026</span>")
           .arg(tr("Developer"))
           .arg(tr("Year")));
   infoLabel->setStyleSheet(
-      "color: " + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
+      QStringLiteral("color: ") + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
 
   auto *okBtn = new QPushButton(tr("Close"), &dialog);
   okBtn->setObjectName("actionButton");
@@ -972,7 +971,7 @@ void MainWindow::startUpdate() {
 }
 
 void MainWindow::appendLog(const QString &text, const QString &color) {
-  const QString formattedText = QString("<span style='color:%1'>%2</span>")
+  const QString formattedText = QStringLiteral("<span style='color:%1'>%2</span>")
                               .arg(color, text.toHtmlEscaped());
   if (isLibraryOperationActive()) {
     libraryLogConsole->appendHtml(formattedText);
@@ -986,8 +985,8 @@ void MainWindow::appendLog(const QString &text, const QString &color) {
 }
 
 void MainWindow::checkDnfErrors(const QString &output) {
-  if (output.contains("Waiting for process", Qt::CaseInsensitive) ||
-      output.contains("Another app is currently holding the yum lock",
+  if (output.contains(QLatin1String("Waiting for process"), Qt::CaseInsensitive) ||
+      output.contains(QLatin1String("Another app is currently holding the yum lock"),
                       Qt::CaseInsensitive)) {
     const QString msg = tr("System is busy...");
     if (isLibraryOperationActive()) {
@@ -996,10 +995,10 @@ void MainWindow::checkDnfErrors(const QString &output) {
       statusLabel->setText(msg);
     }
   }
-  if (output.contains("Error: Failed to download metadata",
+  if (output.contains(QLatin1String("Error: Failed to download metadata"),
                       Qt::CaseInsensitive) ||
-      output.contains("Could not resolve host", Qt::CaseInsensitive)) {
-    QString msg = tr("Network Error");
+      output.contains(QLatin1String("Could not resolve host"), Qt::CaseInsensitive)) {
+    const QString msg = tr("Network Error");
     if (isLibraryOperationActive()) {
       libraryStatusLabel->setText(msg);
       libraryInstallButton->setEnabled(true);
@@ -1061,15 +1060,15 @@ void MainWindow::handleUpdateErrorOutput() {
       QString::fromUtf8(updateProcess->readAllStandardError());
   QStringList lines = errorOutput.split('\n', Qt::SkipEmptyParts);
   for (const QString &line : lines) {
-    if (!line.contains("[sudo]")) {
+    if (!line.contains(QLatin1String("[sudo]"))) {
       appendLog(line, "#cc7700");
     }
   }
   checkDnfErrors(errorOutput);
 
-  if (errorOutput.contains("standard input:1", Qt::CaseInsensitive) ||
-      errorOutput.contains("incorrect password", Qt::CaseInsensitive) ||
-      errorOutput.contains("try again", Qt::CaseInsensitive)) {
+  if (errorOutput.contains(QLatin1String("standard input:1"), Qt::CaseInsensitive) ||
+      errorOutput.contains(QLatin1String("incorrect password"), Qt::CaseInsensitive) ||
+      errorOutput.contains(QLatin1String("try again"), Qt::CaseInsensitive)) {
     isTerminatingIntentionally = true;
     updateProcess->terminate();
     resetOperationUI(tr("Wrong Password!"), true);

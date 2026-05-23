@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QIcon>
+#include <QLatin1String>
 #include <QSettings>
 #include <QStyleFactory>
 
@@ -27,15 +28,16 @@ void configureQtPlatform()
 void configureDesktopIntegration(QApplication &app)
 {
     QCoreApplication::setApplicationName("ro-assist");
-    QCoreApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
+    QCoreApplication::setApplicationVersion(
+        QLatin1String(APP_VERSION));
     QCoreApplication::setOrganizationName("Project-Ro-ASD");
     QCoreApplication::setOrganizationDomain("github.com/Project-Ro-ASD");
     app.setDesktopFileName("ro-assist");
 
 #ifdef Q_OS_LINUX
     const QString desktop = qEnvironmentVariable("XDG_CURRENT_DESKTOP");
-    if (desktop.contains("KDE", Qt::CaseInsensitive) &&
-        QStyleFactory::keys().contains("Breeze")) {
+    if (desktop.contains(QLatin1String("KDE"), Qt::CaseInsensitive) &&
+        QStyleFactory::keys().contains(QLatin1String("Breeze"))) {
         app.setStyle("Breeze");
     }
 #endif

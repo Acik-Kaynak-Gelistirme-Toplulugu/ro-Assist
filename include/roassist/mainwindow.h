@@ -64,6 +64,7 @@ private slots:
     void toggleLibraryLogs();
 
 private:
+    static constexpr int CAROUSEL_INTERVAL_MS = 5000;
     QString langFlag(const QString &langCode) const;
     QString langName(const QString &langCode) const;
     void loadLanguage(const QString &langCode);
@@ -150,12 +151,12 @@ private:
     QLabel *appStorePlaceholderIcon;
     QPushButton *appStoreOpenAppBtn;
 
-    Theme currentTheme;
-    OperationType activeOperation;
-    bool transactionPhaseStarted;
-    bool isTerminatingIntentionally;
-    bool isNetworkConnected;
-    bool isLibraryInstalled;
+    Theme currentTheme{Light};
+    OperationType activeOperation{None};
+    bool transactionPhaseStarted{false};
+    bool isTerminatingIntentionally{false};
+    bool isNetworkConnected{true};
+    bool isLibraryInstalled{false};
 };
 
 #endif // MAINWINDOW_H

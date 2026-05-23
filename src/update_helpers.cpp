@@ -1,5 +1,6 @@
 #include "roassist/update_helpers.h"
 
+#include <QLatin1String>
 #include <QRegularExpression>
 
 namespace {
@@ -48,7 +49,7 @@ std::optional<int> parseDownloadPercent(const QString &output) {
 }
 
 bool containsNoWorkMarker(const QString &output) {
-  return output.contains(QStringLiteral("Nothing to do"), Qt::CaseInsensitive) ||
+  return output.contains(QLatin1String("Nothing to do"), Qt::CaseInsensitive) ||
          output.contains(QStringLiteral("Yapılacak bir şey yok"),
                          Qt::CaseInsensitive);
 }
