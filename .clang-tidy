@@ -1,4 +1,11 @@
 ---
+# On Fedora / Linux, clang-tidy works without ExtraArgs.
+# On macOS (Homebrew LLVM), pass these to resolve <type_traits> errors:
+#   --extra-arg=-stdlib=libc++
+#   --extra-arg=-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+#   --extra-arg=-nostdinc++
+#   --extra-arg=-cxx-isystem /opt/homebrew/opt/llvm/include/c++/v1
+
 Checks: >
   *,
   -llvmlibc-*,

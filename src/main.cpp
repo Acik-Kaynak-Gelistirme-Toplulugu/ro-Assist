@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QGuiApplication>
 #include <QIcon>
 #include <QLatin1String>
 #include <QSettings>
