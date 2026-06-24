@@ -8,32 +8,28 @@
 #include <QProgressBar>
 #include <QProcess>
 #include <QStackedWidget>
-#include <QTimer>
-#include <QPlainTextEdit>
+#include <QTextEdit>
 #include <QNetworkInformation>
 #include <QMenu>
 #include <QAction>
-#include <QEvent>
-#include <QTranslator>
+#include <QString>
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum class Theme { Light, Dark };
-    enum class OperationType { None, SystemUpdate, LibraryInstall };
+    enum Language { TR, EN, ES, DE, FR };
+    enum Theme { Light, Dark };
+    enum OperationType { None, SystemUpdate, LibraryInstall, PrinterSupportInstall };
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-protected:
-    void changeEvent(QEvent *event) override;
-
 private slots:
-    static void openWebsite();
-    static void openRoAsdGitHub();
-    static void openRoAssistGitHub();
+    void openWebsite();
+    void openRoAsdGitHub();
+    void openRoAssistGitHub();
     void showAboutDialog();
     
     void startUpdate();
@@ -45,46 +41,60 @@ private slots:
     void handleCheckUpdateFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void handleCheckLibFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void startLibraryPackageInstall();
+    void startPrinterSupportInstall();
+    void choosePrinterSupportLater();
+    void disablePrinterSupport();
+    void openPrinterSettings();
+    void openScannerApplication();
+    void handlePrinterSupportOutput();
+    void handlePrinterSupportErrorOutput();
+    void handlePrinterSupportFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void handlePrinterSupportProcessError(QProcess::ProcessError error);
 
-    void nextSlide();
-    void prevSlide();
+    void advanceWelcome();
     void showUpdateScreen();
     void showLibraryScreen();
     void showAppStoreScreen();
-    void showCarouselScreen();
+    void showSocialScreen();
+    void showCommunityScreen();
+    void showPrinterSupportScreen();
+    void showWelcomeScreen();
+    void showDashboardScreen();
+    void showHomeScreen();
 
     void changeLanguage(QAction *action);
+    void changeLanguageAction(QAction *action);
     void toggleTheme();
     void onNetworkConnectedChanged(bool isConnected);
     
-    static void openBozokCommunity();
+    void openBozokCommunity();
     void dummyAppStoreAction();
 
     void toggleUpdateLogs();
     void toggleLibraryLogs();
 
 private:
-    static constexpr int CAROUSEL_INTERVAL_MS = 5000;
-    [[nodiscard]] static QString langFlag(const QString &langCode);
-    [[nodiscard]] static QString langName(const QString &langCode);
-    void loadLanguage(const QString &langCode);
     void setupUi();
     void setupStyle();
     void checkDnfErrors(const QString &output);
-    void createCarouselSlides();
+    void createWelcomeSlides();
+    void createDashboard();
     void updateUiTextAndImages();
-    void detectTheme();
+    void detectSystemLanguageAndTheme();
     void appendLog(const QString &text, const QString &color = "#666666");
-    void resetOperationUI(const QString &statusText, bool reenableButton);
+    void appendPrinterLog(const QString &text, const QString &color = "#666666");
     void setInitialUpdateStatus();
     void setOperationRunning(OperationType operation);
     void clearActiveOperation();
-    [[nodiscard]] bool isOperationRunning() const;
-    [[nodiscard]] bool isLibraryOperationActive() const;
+    bool isOperationRunning() const;
+    bool isLibraryOperationActive() const;
+    bool isPrinterSupportOperationActive() const;
+    QString currentLanguageCode() const;
 
-    QTranslator m_translator;
-    QString m_currentLang;
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
+private:
     QLabel *versionLabel;
     QLabel *statusLabel;
     QLabel *libraryStatusLabel;
@@ -98,18 +108,24 @@ private:
     QProcess *updateProcess;
     QProcess *checkUpdateProcess;
     QProcess *checkLibProcess;
+    QProcess *printerSupportProcess;
 
+    // Main layout
     QStackedWidget *mainStack;
-    QWidget *carouselViewWidget;
+    QWidget *welcomeViewWidget;
+    QWidget *dashboardViewWidget;
     QWidget *updateViewWidget;
     QWidget *libraryViewWidget;
     QWidget *appStoreViewWidget;
+    QWidget *socialViewWidget;
+    QWidget *communityViewWidget;
+    QWidget *printerSupportViewWidget;
 
-    QStackedWidget *carousel;
-    QTimer *carouselTimer;
+    QStackedWidget *welcomeStack;
 
-    QPlainTextEdit *logConsole;
-    QPlainTextEdit *libraryLogConsole;
+    QTextEdit *logConsole;
+    QTextEdit *libraryLogConsole;
+    QTextEdit *printerLogConsole;
 
     QPushButton *toggleLogBtn;
     QPushButton *toggleLibraryLogBtn;
@@ -119,44 +135,75 @@ private:
     QPushButton *langBtn;
     QMenu *langMenu;
     QPushButton *themeToggleBtn;
-    QPushButton *prevSlideBtn;
-    QPushButton *nextSlideBtn;
+    QPushButton *welcomeNextBtn;
     QPushButton *backToCarouselBtn;
     QPushButton *backFromLibraryBtn;
     QPushButton *backFromAppStoreBtn;
-    QPushButton *aboutBtn;
+    QPushButton *backFromSocialBtn;
+    QPushButton *backFromCommunityBtn;
 
+    QLabel *welcomeProgressLabel;
+    QLabel *dashboardGreetingLabel;
+    QLabel *dashboardDescriptionLabel;
+    QPushButton *dashboardUpdateCard;
+    QPushButton *dashboardSocialCard;
+    QPushButton *dashboardStoreCard;
+    QPushButton *dashboardCommunityCard;
+    QPushButton *dashboardLibraryCard;
+    QPushButton *dashboardPrinterCard;
+
+    // Slide specific elements
     QLabel *slide1Title;
     QLabel *slide1Desc;
-    QPushButton *updateSlideBtn;
     
     QLabel *slide2Title;
-    QToolButton *websiteBtn;
-    QToolButton *roAsdGitHubBtn;
-    QToolButton *roAssistGitHubBtn;
+    QLabel *slide2Desc;
     
     QLabel *slide3Title;
     QLabel *slide3Desc;
-    QPushButton *appStoreSlideBtn;
     
     QLabel *slide4Title;
     QLabel *slide4Desc;
-    QPushButton *bozokBtn;
     
     QLabel *slide5Title;
     QLabel *slide5Desc;
-    QPushButton *libraryPackageSlideBtn;
 
+    QLabel *socialTitleLabel;
+    QLabel *socialDescriptionLabel;
+    QToolButton *websiteBtn;
+    QToolButton *roAsdGitHubBtn;
+    QToolButton *roAssistGitHubBtn;
+    QLabel *communityTitleLabel;
+    QLabel *communityDescriptionLabel;
+    QPushButton *bozokBtn;
+
+    QPushButton *backFromPrinterSupportBtn;
+    QLabel *printerSupportTitleLabel;
+    QLabel *printerSupportDescriptionLabel;
+    QLabel *printerSupportBenefitsLabel;
+    QLabel *printerSupportStatusLabel;
+    QPushButton *printerSupportInstallButton;
+    QPushButton *printerSupportLaterButton;
+    QPushButton *printerSupportDisableButton;
+    QPushButton *openPrinterSettingsButton;
+    QPushButton *openScannerButton;
+    QProgressBar *printerSupportProgressBar;
+
+    // App Store View special elements
     QLabel *appStoreTitleLabel;
     QLabel *appStorePlaceholderIcon;
     QPushButton *appStoreOpenAppBtn;
 
-    Theme currentTheme{Theme::Light};
-    OperationType activeOperation{OperationType::None};
-    bool transactionPhaseStarted{false};
-    bool isTerminatingIntentionally{false};
-    bool isNetworkConnected{true};
-    bool isLibraryInstalled{false};
+    // State
+    Language currentLang;
+    Theme currentTheme;
+    OperationType activeOperation;
+    bool transactionPhaseStarted;
+    bool isTerminatingIntentionally;
+    bool isNetworkConnected;
+    bool isLibraryInstalled;
+    bool isPrinterSupportInstalled;
+    bool welcomeCompleted;
 };
 
 #endif // MAINWINDOW_H

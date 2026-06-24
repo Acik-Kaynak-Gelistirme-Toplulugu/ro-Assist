@@ -1,6 +1,9 @@
 #include "roassist/mainwindow.h"
 
 #include <QtTest/QtTest>
+#include <QDir>
+#include <QSettings>
+#include <QStandardPaths>
 
 class MainWindowIntegrationTest : public QObject
 {
@@ -8,14 +11,31 @@ class MainWindowIntegrationTest : public QObject
 
 private slots:
     void initTestCase();
+    void init();
     void languageSwitchUpdatesPrimaryTexts();
     void networkIndicatorFollowsConnectivity();
+    void firstRunRequiresOrderedCompletion();
+    void welcomePageCanOpenAndReturnToItsCurrentStep();
+    void printerSupportPreferencesArePersisted();
 };
 
 void MainWindowIntegrationTest::initTestCase()
 {
     qputenv("RO_ASSIST_SKIP_SYSTEM_CHECKS", "1");
     qputenv("QT_QPA_PLATFORM", "offscreen");
+    QStandardPaths::setTestModeEnabled(true);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope,
+                       QDir::tempPath() + "/ro-assist-tests");
+    QCoreApplication::setOrganizationName("Project-Ro-ASD");
+    QCoreApplication::setApplicationName("ro-assist");
+}
+
+void MainWindowIntegrationTest::init()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "Project-Ro-ASD", "ro-assist");
+    settings.clear();
+    settings.sync();
 }
 
 void MainWindowIntegrationTest::languageSwitchUpdatesPrimaryTexts()
@@ -46,6 +66,20 @@ void MainWindowIntegrationTest::languageSwitchUpdatesPrimaryTexts()
                               Q_ARG(QAction *, &spanish));
     QVERIFY(languageButton->text().contains("Español"));
     QCOMPARE(updateButton->text(), QString("Actualizar Sistema"));
+
+    QAction german;
+    german.setData(static_cast<int>(MainWindow::DE));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &german));
+    QCOMPARE(languageButton->text(), QString("🇩🇪 Deutsch"));
+    QCOMPARE(updateButton->text(), QString("System aktualisieren"));
+
+    QAction french;
+    french.setData(static_cast<int>(MainWindow::FR));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &french));
+    QCOMPARE(languageButton->text(), QString("🇫🇷 Français"));
+    QCOMPARE(updateButton->text(), QString("Mettre le système à jour"));
 }
 
 void MainWindowIntegrationTest::networkIndicatorFollowsConnectivity()
@@ -64,6 +98,108 @@ void MainWindowIntegrationTest::networkIndicatorFollowsConnectivity()
     QMetaObject::invokeMethod(&window, "onNetworkConnectedChanged",
                               Q_ARG(bool, true));
     QVERIFY(networkStatusLabel->isHidden());
+}
+
+void MainWindowIntegrationTest::firstRunRequiresOrderedCompletion()
+{
+    MainWindow window;
+    auto *nextButton = window.findChild<QPushButton *>("welcomeNextButton");
+    auto *mainStack = window.findChild<QStackedWidget *>("mainStack");
+    auto *dashboardCard =
+        window.findChild<QPushButton *>("dashboardUpdateCard");
+    QVERIFY(nextButton);
+    QVERIFY(mainStack);
+    QVERIFY(dashboardCard);
+
+    QAction english;
+    english.setData(static_cast<int>(MainWindow::EN));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &english));
+    QCOMPARE(nextButton->text(), QString("Next"));
+
+    for (int index = 0; index < 4; ++index) {
+        QMetaObject::invokeMethod(&window, "advanceWelcome");
+    }
+    QCOMPARE(nextButton->text(), QString("Open ro-Assist"));
+
+    QMetaObject::invokeMethod(&window, "advanceWelcome");
+    QCOMPARE(mainStack->currentWidget(), dashboardCard->parentWidget());
+
+    MainWindow reopenedWindow;
+    auto *reopenedMainStack =
+        reopenedWindow.findChild<QStackedWidget *>("mainStack");
+    auto *reopenedDashboardCard =
+        reopenedWindow.findChild<QPushButton *>("dashboardUpdateCard");
+    QVERIFY(reopenedMainStack);
+    QVERIFY(reopenedDashboardCard);
+    QCOMPARE(reopenedMainStack->currentWidget(),
+             reopenedDashboardCard->parentWidget());
+}
+
+void MainWindowIntegrationTest::welcomePageCanOpenAndReturnToItsCurrentStep()
+{
+    MainWindow window;
+    window.show();
+    QCoreApplication::processEvents();
+
+    auto *mainStack = window.findChild<QStackedWidget *>("mainStack");
+    auto *welcomeStack = window.findChild<QStackedWidget *>("welcomeStack");
+    auto *backButton = window.findChild<QPushButton *>("backToHomeButton");
+    QVERIFY(mainStack);
+    QVERIFY(welcomeStack);
+    QVERIFY(backButton);
+
+    QAction english;
+    english.setData(static_cast<int>(MainWindow::EN));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &english));
+
+    QMetaObject::invokeMethod(&window, "advanceWelcome");
+    QCOMPARE(welcomeStack->currentIndex(), 1);
+    auto *title =
+        welcomeStack->currentWidget()->findChild<QLabel *>("slideTitle");
+    QVERIFY(title);
+
+    QTest::mouseClick(title, Qt::LeftButton);
+    QCOMPARE(mainStack->currentIndex(), 5);
+
+    QTest::mouseClick(backButton, Qt::LeftButton);
+    QCOMPARE(mainStack->currentIndex(), 0);
+    QCOMPARE(welcomeStack->currentIndex(), 1);
+}
+
+void MainWindowIntegrationTest::printerSupportPreferencesArePersisted()
+{
+    MainWindow window;
+    window.show();
+    QCoreApplication::processEvents();
+    auto *printerCard =
+        window.findChild<QPushButton *>("dashboardPrinterCard");
+    auto *mainStack = window.findChild<QStackedWidget *>("mainStack");
+    auto *printerView = window.findChild<QWidget *>("printerSupportView");
+    auto *laterButton =
+        window.findChild<QPushButton *>("printerSupportLaterButton");
+    auto *disableButton =
+        window.findChild<QPushButton *>("printerSupportDisableButton");
+    QVERIFY(printerCard);
+    QVERIFY(mainStack);
+    QVERIFY(printerView);
+    QVERIFY(laterButton);
+    QVERIFY(disableButton);
+
+    QMetaObject::invokeMethod(&window, "showDashboardScreen");
+    QTest::mouseClick(printerCard, Qt::LeftButton);
+    QCOMPARE(mainStack->currentWidget(), printerView);
+
+    QTest::mouseClick(laterButton, Qt::LeftButton);
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "Project-Ro-ASD", "ro-assist");
+    QCOMPARE(settings.value("printer/supportPreference").toString(),
+             QString("later"));
+
+    QTest::mouseClick(disableButton, Qt::LeftButton);
+    QCOMPARE(settings.value("printer/supportPreference").toString(),
+             QString("disabled"));
 }
 
 QTEST_MAIN(MainWindowIntegrationTest)

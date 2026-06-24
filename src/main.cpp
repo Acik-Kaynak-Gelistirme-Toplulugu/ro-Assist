@@ -2,14 +2,13 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
-#include <QGuiApplication>
 #include <QIcon>
-#include <QLatin1String>
 #include <QSettings>
 #include <QStyleFactory>
 
+namespace {
 
-static void configureQtPlatform()
+void configureQtPlatform()
 {
 #ifdef Q_OS_LINUX
     const QByteArray platform = qgetenv("QT_QPA_PLATFORM");
@@ -25,20 +24,18 @@ static void configureQtPlatform()
 #endif
 }
 
-static void configureDesktopIntegration(QApplication &app)
+void configureDesktopIntegration(QApplication &app)
 {
-    Q_UNUSED(app);
     QCoreApplication::setApplicationName("ro-assist");
-    QCoreApplication::setApplicationVersion(
-        QLatin1String(APP_VERSION));
+    QCoreApplication::setApplicationVersion("0.1.1");
     QCoreApplication::setOrganizationName("Project-Ro-ASD");
     QCoreApplication::setOrganizationDomain("github.com/Project-Ro-ASD");
-    QGuiApplication::setDesktopFileName("ro-assist");
+    app.setDesktopFileName("ro-assist");
 
 #ifdef Q_OS_LINUX
     const QString desktop = qEnvironmentVariable("XDG_CURRENT_DESKTOP");
-    if (desktop.contains(QLatin1String("KDE"), Qt::CaseInsensitive) &&
-        QStyleFactory::keys().contains(QLatin1String("Breeze"))) {
+    if (desktop.contains("KDE", Qt::CaseInsensitive) &&
+        QStyleFactory::keys().contains("Breeze")) {
         app.setStyle("Breeze");
     }
 #endif
@@ -48,23 +45,31 @@ static void configureDesktopIntegration(QApplication &app)
         icon = QIcon(QStringLiteral(":/icons/ro-assist.svg"));
     }
     if (!icon.isNull()) {
-        QGuiApplication::setWindowIcon(icon);
+        app.setWindowIcon(icon);
     }
 }
 
-static bool hasCompletedAutostartWelcome()
+bool hasCompletedWelcome()
 {
-    const QSettings settings;
-    return settings.value(QStringLiteral("autostart/welcomeShown"), false).toBool();
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QStringLiteral("Project-Ro-ASD"),
+                       QStringLiteral("ro-assist"));
+    return settings.value(QStringLiteral("welcome/completed"),
+                          settings.value(QStringLiteral("autostart/welcomeShown"), false))
+        .toBool();
 }
 
-static void markAutostartWelcomeCompleted()
+void resetWelcome()
 {
-    QSettings settings;
-    settings.setValue(QStringLiteral("autostart/welcomeShown"), true);
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QStringLiteral("Project-Ro-ASD"),
+                       QStringLiteral("ro-assist"));
+    settings.setValue(QStringLiteral("welcome/completed"), false);
+    settings.remove(QStringLiteral("autostart/welcomeShown"));
     settings.sync();
 }
 
+} // namespace
 
 int main(int argc, char *argv[])
 {
@@ -73,37 +78,38 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QCommandLineParser parser;
-    parser.setApplicationDescription(
-        QCoreApplication::translate("MainWindow", "Fedora KDE desktop assistant for system maintenance"));
+    parser.setApplicationDescription("Fedora KDE desktop assistant for system maintenance");
     parser.addHelpOption();
     parser.addVersionOption();
-    const QCommandLineOption autostartOption("autostart",
-        QCoreApplication::translate("MainWindow", "Launch from the desktop autostart entry."));
-    const QCommandLineOption smokeTestOption("smoke-test",
-        QCoreApplication::translate("MainWindow", "Create the UI and exit immediately."));
+    QCommandLineOption autostartOption("autostart", "Launch from the desktop autostart entry.");
+    QCommandLineOption smokeTestOption("smoke-test", "Create the UI and exit immediately.");
+    QCommandLineOption resetWelcomeOption(
+        "reset-welcome", "Show the first-run welcome flow again on the next launch.");
     parser.addOption(autostartOption);
     parser.addOption(smokeTestOption);
+    parser.addOption(resetWelcomeOption);
     parser.process(a);
 
     if (!parser.isSet(smokeTestOption)) {
         configureDesktopIntegration(a);
     }
 
-    if (parser.isSet(autostartOption) && hasCompletedAutostartWelcome()) {
+    if (parser.isSet(resetWelcomeOption)) {
+        resetWelcome();
+        return 0;
+    }
+
+    if (parser.isSet(autostartOption) && hasCompletedWelcome()) {
         return 0;
     }
 
     MainWindow w;
     w.show();
 
-    if (parser.isSet(autostartOption)) {
-        markAutostartWelcomeCompleted();
-    }
-
     if (parser.isSet(smokeTestOption)) {
-        QCoreApplication::processEvents();
+        a.processEvents();
         return 0;
     }
 
-    return QCoreApplication::exec();
+    return a.exec();
 }
