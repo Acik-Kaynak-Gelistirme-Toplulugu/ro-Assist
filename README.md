@@ -2,7 +2,7 @@
 
 Language: English | [Turkish](docs/README.tr.md)
 
-![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Fedora_43_KDE-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
@@ -13,6 +13,8 @@ ro-Assist is a Qt6 desktop assistant built specifically for Fedora 43 KDE Plasma
 - Real-time update progress tracking from command output parsing.
 - Qt6-based desktop interface tuned for Fedora 43 KDE Plasma.
 - Package management integration centered on Fedora workflows.
+- First-run welcome flow followed by a page dashboard for later launches.
+- Optional printer and scanner support through the `ro-printer-support` package.
 - Breeze style and themed icon integration when running inside KDE.
 
 ## Tech Stack

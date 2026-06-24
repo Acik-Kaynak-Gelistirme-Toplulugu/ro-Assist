@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ro-assist VERSION 0.1.1 LANGUAGES CXX)
+project(ro-assist VERSION 0.1.2 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -100,7 +100,7 @@ set_tests_properties(ro-assist-smoke-test PROPERTIES
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "ro-assist")
-set(CPACK_PACKAGE_VERSION "0.1.1")
+set(CPACK_PACKAGE_VERSION "0.1.2")
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <ebubekir.bulut99@gmail.com>")
 set(CPACK_PACKAGE_VENDOR "Project Ro-ASD")

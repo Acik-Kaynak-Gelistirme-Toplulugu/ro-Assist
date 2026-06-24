@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QIcon>
+#include <QLatin1String>
 #include <QSettings>
 #include <QStyleFactory>
 
@@ -27,7 +28,7 @@ void configureQtPlatform()
 void configureDesktopIntegration(QApplication &app)
 {
     QCoreApplication::setApplicationName("ro-assist");
-    QCoreApplication::setApplicationVersion("0.1.1");
+    QCoreApplication::setApplicationVersion(QLatin1String(APP_VERSION));
     QCoreApplication::setOrganizationName("Project-Ro-ASD");
     QCoreApplication::setOrganizationDomain("github.com/Project-Ro-ASD");
     app.setDesktopFileName("ro-assist");

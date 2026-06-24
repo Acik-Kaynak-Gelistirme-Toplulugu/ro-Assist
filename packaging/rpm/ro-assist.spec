@@ -1,5 +1,5 @@
 Name:           ro-assist
-Version:        0.1.1
+Version:        0.1.2
 Release:        1%{?dist}
 Summary:        System management and update assistant for Fedora Linux
 ExclusiveArch:  x86_64 aarch64
@@ -37,6 +37,11 @@ ro-Assist is a system management and update assistant for Linux systems, designe
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
+* Wed Jun 24 2026 Project Ro-ASD <contact@roasd.org> - 0.1.2-1
+- Add the first-run welcome flow and a reusable dashboard.
+- Add printer and scanner support controls through the ro-printer-support package.
+- Improve system locale detection and add German and French UI coverage.
+
 * Sat May 09 2026 Ebubekir Bulut <ebubekir.bulut99@gmail.com> - 0.1.1-1
 - Refresh package metadata shown in Discover, including author, license, and descriptions.
 
