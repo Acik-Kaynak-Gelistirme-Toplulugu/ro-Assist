@@ -2,7 +2,7 @@
 Type=Application
 Version=1.0
 Name=ro-Assist Welcome
-Comment=Launch ro-Assist automatically on the first KDE login
+Comment=Launch the Ro-ASD first-run and maintenance center on the first KDE login
 Exec=env QT_QPA_PLATFORM=xcb QT_XCB_GL_INTEGRATION=xcb_glx ro-assist --autostart
 Icon=ro-assist
 Terminal=false

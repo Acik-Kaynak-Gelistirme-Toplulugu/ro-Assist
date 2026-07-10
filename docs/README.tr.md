@@ -2,17 +2,22 @@
 
 Dil: Turkce | [English](../README.md)
 
-![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Fedora_43_KDE-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
-ro-Assist, ozellikle Fedora 43 KDE Plasma sistemleri icin gelistirilmis Qt6 tabanli bir masaustu yardimcisidir. Guncelleme islemlerini calistirir ve mumkun oldugunca masaustu ile uyumlu davranis koruyarak ilerleme durumunu sade bir arayuzde gosterir.
+ro-Assist, Fedora 43 KDE Plasma tabanli Ro-ASD sistemleri icin gelistirilmis Qt6 tabanli ilk kurulum ve bakim merkezidir. Kontrollu guncelleme akislari, onerilen hazirlik adimlari ve proje kaynaklari sunar; donanim ve surucu durumu icin ro Control'e yonlendirir.
 
 ## Ozellikler
 
-- Komut ciktilarini ayrisarak gercek zamanli guncelleme ilerlemesi gosterebilir.
+- DNF, Flatpak ve Snap guncellemelerini kontrollu adimlar halinde log ve ilerleme ile yurutur.
+- NVIDIA donanimi nouveau ile calisirken, dusuk disk alani veya bekleyen yeniden baslatma gibi bilinen riskleri guncelleme oncesi gosterir.
+- Donanim, GPU ve surucu durumu icin surucu kurmadan ro Control'e guvenli yonlendirme yapar.
 - Fedora 43 KDE Plasma hedefi icin uyarlanmis Qt6 tabanli masaustu arayuzu.
 - Fedora odakli paket yonetimi is akislarina entegrasyon.
+- Ilk acilis hosgeldin akisi ve sonraki calistirmalar icin sayfa tabanli dashboard.
+- GameMode, MangoHud ve Vulkan araclari icin temel oyun hazirligi.
+- `ro-printer-support` paketi uzerinden istege bagli yazici ve tarayici destegi.
 - KDE icinde calisirken Breeze stil ve tema ikon entegrasyonu.
 
 ## Teknoloji Yigini

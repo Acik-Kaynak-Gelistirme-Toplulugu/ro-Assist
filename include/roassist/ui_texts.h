@@ -12,7 +12,6 @@ struct Bundle {
   QString backButton;
   QString toggleLogs;
   QString toggleLibraryLogs;
-  QString versionLabel;
   QString updateButton;
   QString welcomeNext;
   QString welcomeFinish;
@@ -25,6 +24,7 @@ struct Bundle {
   QString dashboardCommunityCard;
   QString dashboardLibraryCard;
   QString dashboardPrinterCard;
+  QString dashboardTelemetryCard;
   QString slide1Title;
   QString slide1Description;
   QString updateSlideButton;
@@ -41,6 +41,8 @@ struct Bundle {
   QString slide5Title;
   QString slide5Description;
   QString librarySlideButton;
+  QString slide6Title;
+  QString slide6Description;
   QString libraryStatusIdle;
   QString logPlaceholder;
   QString websiteButton;
@@ -60,6 +62,24 @@ struct Bundle {
   QString printerSupportLaterSelected;
   QString printerSupportDisabled;
   QString printerSupportFailed;
+  QString telemetryTitle;
+  QString telemetryIntro;
+  QString telemetryPurposeTitle;
+  QString telemetryPurposeText;
+  QString telemetryLevelsTitle;
+  QString telemetryLevelsText;
+  QString telemetryDoesNotCollectTitle;
+  QString telemetryDoesNotCollectText;
+  QString telemetrySliderTitle;
+  QString telemetryCurrentLevel;
+  QString telemetryLevelOff;
+  QString telemetryLevelCount;
+  QString telemetryLevelBasic;
+  QString telemetryLevelExtended;
+  QString telemetryDescriptionOff;
+  QString telemetryDescriptionCount;
+  QString telemetryDescriptionBasic;
+  QString telemetryDescriptionExtended;
 };
 
 Bundle buildBundle(const QString &languageCode, bool darkTheme,
@@ -71,6 +91,7 @@ QString aboutDescription(const QString &languageCode);
 QString developerLabel(const QString &languageCode);
 QString yearLabel(const QString &languageCode);
 QString closeLabel(const QString &languageCode);
+QString versionText(const QString &languageCode, const QString &version);
 
 QString storeVersionTitle(const QString &languageCode);
 QString storeVersionMessage(const QString &languageCode);
@@ -100,6 +121,22 @@ QString componentFailedToStart(const QString &languageCode);
 QString componentCrashed(const QString &languageCode);
 QString criticalErrorPrefix(const QString &languageCode);
 QString processCompleted(const QString &languageCode);
+QString maintenanceReady(const QString &languageCode);
+QString maintenancePlanSummary(const QString &languageCode,
+                               bool flatpakAvailable, bool snapAvailable);
+QString maintenanceNoKnownRisk(const QString &languageCode);
+QString nouveauRiskWarning(const QString &languageCode,
+                           bool roControlAvailable);
+QString lowDiskWarning(const QString &languageCode);
+QString rebootRequiredWarning(const QString &languageCode);
+QString roControlButtonText(const QString &languageCode,
+                            bool roControlAvailable);
+QString roControlMissingMessage(const QString &languageCode);
+QString updateStepStarting(const QString &languageCode, const QString &label,
+                           int current, int total);
+QString updatePartialFailure(const QString &languageCode);
+QString updateNeedsReboot(const QString &languageCode);
+QString updateAborted(const QString &languageCode);
 
 } // namespace RoAssist::UiTexts
 

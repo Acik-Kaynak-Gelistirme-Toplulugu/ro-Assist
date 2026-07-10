@@ -48,12 +48,12 @@
         <translation>Sistemi Güncelle</translation>
     </message>
     <message>
-        <source>Update Your System With One Click</source>
-        <translation>Sisteminizi Tek Tuşla Güncelleyin</translation>
+        <source>Update Your System With Control</source>
+        <translation>Sisteminizi Kontrollü Güncelleyin</translation>
     </message>
     <message>
-        <source>Updates all system packages, including flatpak and snap.</source>
-        <translation>Sistemdeki tüm paketleri, flatpak ve snap uygulamalarını günceller.</translation>
+        <source>Shows update risks and tracks DNF, Flatpak and Snap as separate steps.</source>
+        <translation>DNF, Flatpak ve Snap adımlarını ayrı izleyerek güncelleme risklerini açıkça gösterir.</translation>
     </message>
     <message>
         <source>Go to Update Screen</source>
@@ -96,20 +96,20 @@
         <translation>Kulübe Katıl</translation>
     </message>
     <message>
-        <source>Game Library</source>
-        <translation>Oyun Kütüphanesi</translation>
+        <source>Basic Gaming Tools</source>
+        <translation>Oyun için Temel Araçlar</translation>
     </message>
     <message>
-        <source>You can download and update game libraries.</source>
-        <translation>Oyun kütüphanelerini indirebilir ve güncelleyebilirsiniz.</translation>
+        <source>Install or update GameMode, MangoHud and Vulkan tools. Driver handling stays in ro Control.</source>
+        <translation>GameMode, MangoHud ve Vulkan araçlarını kurabilir veya güncelleyebilirsiniz. Sürücü kurulumu ro Control'e bırakılır.</translation>
     </message>
     <message>
-        <source>Open Library Screen</source>
-        <translation>Oyun Kütüphanesi Ekranına Geç</translation>
+        <source>Open Gaming Tools</source>
+        <translation>Oyun Araçlarını Aç</translation>
     </message>
     <message>
-        <source>Start Download</source>
-        <translation>İndirmeyi Başlat</translation>
+        <source>GameMode, MangoHud and Vulkan tools can be prepared.</source>
+        <translation>GameMode, MangoHud ve Vulkan araçları hazırlanabilir.</translation>
     </message>
     <message>
         <source>Logs...</source>
@@ -120,12 +120,12 @@
         <translation>Web Sitesi</translation>
     </message>
     <message>
-        <source>Download Libraries</source>
-        <translation>Kütüphaneleri İndir</translation>
+        <source>Install Tools</source>
+        <translation>Oyun Araçlarını Kur</translation>
     </message>
     <message>
-        <source>Update Libraries</source>
-        <translation>Kütüphaneleri Güncelle</translation>
+        <source>Update Tools</source>
+        <translation>Araçları Güncelle</translation>
     </message>
     <message>
         <source>Checking for updates...</source>
@@ -152,12 +152,12 @@
         <translation>Kapat</translation>
     </message>
     <message>
-        <source>Store Version</source>
-        <translation>Mağaza Sürümü</translation>
+        <source>Discover Not Found</source>
+        <translation>Discover Bulunamadı</translation>
     </message>
     <message>
-        <source>Integration coming soon!</source>
-        <translation>Bu sistem yakında eklenecektir!</translation>
+        <source>Discover could not be started. Install or open applications through your distribution package manager.</source>
+        <translation>Discover başlatılamadı. Uygulamaları dağıtımınızın paket yöneticisi üzerinden kurabilir veya açabilirsiniz.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -180,16 +180,16 @@
         <translation>Başka bir işlem zaten çalışıyor.</translation>
     </message>
     <message>
-        <source>Installing libraries...</source>
-        <translation>Kütüphaneler kuruluyor...</translation>
+        <source>Installing gaming tools...</source>
+        <translation>Oyun araçları kuruluyor...</translation>
     </message>
     <message>
         <source>System update starting...</source>
         <translation>Sistem güncellemesi başlatılıyor...</translation>
     </message>
     <message>
-        <source>Libraries installed.</source>
-        <translation>Kütüphaneler kuruldu.</translation>
+        <source>Gaming tools installed.</source>
+        <translation>Oyun araçları kuruldu.</translation>
     </message>
     <message>
         <source>All operations completed successfully.</source>

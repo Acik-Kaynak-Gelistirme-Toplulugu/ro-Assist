@@ -16,10 +16,12 @@ find_package(Qt6 6.6 QUIET COMPONENTS LinguistTools)
 
 set(RO_ASSIST_SOURCES
     include/roassist/mainwindow.h
+    include/roassist/system_services.h
     include/roassist/ui_texts.h
     include/roassist/update_helpers.h
     src/main.cpp
     src/mainwindow.cpp
+    src/system_services.cpp
     src/ui_texts.cpp
     src/update_helpers.cpp
     resources/resources.qrc
@@ -60,9 +62,11 @@ install(FILES resources/icons/ro-assist.svg
 
 add_executable(ro-assist-ui-tests
     include/roassist/mainwindow.h
+    include/roassist/system_services.h
     include/roassist/ui_texts.h
     include/roassist/update_helpers.h
     src/mainwindow.cpp
+    src/system_services.cpp
     src/ui_texts.cpp
     src/update_helpers.cpp
     resources/resources.qrc
@@ -81,7 +85,9 @@ target_compile_definitions(ro-assist-ui-tests PRIVATE APP_VERSION="${PROJECT_VER
 target_link_libraries(ro-assist-ui-tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
 
 add_executable(ro-assist-unit-tests
+    include/roassist/system_services.h
     include/roassist/update_helpers.h
+    src/system_services.cpp
     src/update_helpers.cpp
     tests/update_helpers_test.cpp
 )
@@ -105,7 +111,7 @@ set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <ebubekir.bulut99@gmail.com>")
 set(CPACK_PACKAGE_VENDOR "Project Ro-ASD")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Project-Ro-ASD/ro-Assist")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ro-ASD update and maintenance assistant")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Ro-ASD first-run and maintenance center")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
@@ -113,7 +119,7 @@ set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
 set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0-or-later")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
 set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
-set(CPACK_RPM_PACKAGE_DESCRIPTION "ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.")
+set(CPACK_RPM_PACKAGE_DESCRIPTION "ro-Assist is a Qt desktop application focused on controlled Ro-ASD system updates, first-run guidance, recommended setup actions, and safe handoff to ro Control for hardware and driver status.")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 
 include(CPack)

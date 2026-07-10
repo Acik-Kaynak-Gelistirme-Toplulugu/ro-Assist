@@ -11,13 +11,6 @@ constexpr int DNF_UPDATES_EXIT_CODE = 100;
 
 namespace RoAssist::UpdateHelpers {
 
-QString buildSystemUpdateCommand() {
-  return QStringLiteral(
-      "LANG=C dnf upgrade -y && "
-      "if command -v flatpak > /dev/null; then LANG=C flatpak update -y; fi && "
-      "if command -v snap > /dev/null; then snap refresh; fi");
-}
-
 std::optional<TransactionProgress> parseTransactionProgress(
     const QString &output) {
   static const QRegularExpression txRegex(QStringLiteral("\\((\\d+)/(\\d+)\\)"));

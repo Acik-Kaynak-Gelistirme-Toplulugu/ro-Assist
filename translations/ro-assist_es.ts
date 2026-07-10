@@ -48,12 +48,12 @@
         <translation>Actualizar Sistema</translation>
     </message>
     <message>
-        <source>Update Your System With One Click</source>
-        <translation>Actualiza tu Sistema con un Clic</translation>
+        <source>Update Your System With Control</source>
+        <translation>Actualiza el sistema con control</translation>
     </message>
     <message>
-        <source>Updates all system packages, including flatpak and snap.</source>
-        <translation>Actualiza todos los paquetes del sistema, incluyendo flatpak y snap.</translation>
+        <source>Shows update risks and tracks DNF, Flatpak and Snap as separate steps.</source>
+        <translation>Muestra los riesgos y sigue DNF, Flatpak y Snap como pasos separados.</translation>
     </message>
     <message>
         <source>Go to Update Screen</source>
@@ -96,20 +96,20 @@
         <translation>Únete al Club</translation>
     </message>
     <message>
-        <source>Game Library</source>
-        <translation>Biblioteca de Juegos</translation>
+        <source>Basic Gaming Tools</source>
+        <translation>Herramientas básicas de juego</translation>
     </message>
     <message>
-        <source>You can download and update game libraries.</source>
-        <translation>Puede descargar y actualizar bibliotecas para juegos.</translation>
+        <source>Install or update GameMode, MangoHud and Vulkan tools. Driver handling stays in ro Control.</source>
+        <translation>Puede instalar o actualizar GameMode, MangoHud y herramientas Vulkan. Los controladores se dejan a ro Control.</translation>
     </message>
     <message>
-        <source>Open Library Screen</source>
-        <translation>Ir a Pantalla de Biblioteca de Juegos</translation>
+        <source>Open Gaming Tools</source>
+        <translation>Abrir herramientas de juego</translation>
     </message>
     <message>
-        <source>Start Download</source>
-        <translation>Iniciar la Descarga</translation>
+        <source>GameMode, MangoHud and Vulkan tools can be prepared.</source>
+        <translation>GameMode, MangoHud y herramientas Vulkan se pueden preparar.</translation>
     </message>
     <message>
         <source>Logs...</source>
@@ -120,12 +120,12 @@
         <translation>Sitio Web</translation>
     </message>
     <message>
-        <source>Download Libraries</source>
-        <translation>Descargar bibliotecas</translation>
+        <source>Install Tools</source>
+        <translation>Instalar herramientas</translation>
     </message>
     <message>
-        <source>Update Libraries</source>
-        <translation>Actualizar bibliotecas</translation>
+        <source>Update Tools</source>
+        <translation>Actualizar herramientas</translation>
     </message>
     <message>
         <source>Checking for updates...</source>
@@ -152,12 +152,12 @@
         <translation>Cerrar</translation>
     </message>
     <message>
-        <source>Store Version</source>
-        <translation>Versión de la Tienda</translation>
+        <source>Discover Not Found</source>
+        <translation>Discover no encontrado</translation>
     </message>
     <message>
-        <source>Integration coming soon!</source>
-        <translation>Integración próximamente!</translation>
+        <source>Discover could not be started. Install or open applications through your distribution package manager.</source>
+        <translation>No se pudo iniciar Discover. Instale o abra aplicaciones con el gestor de paquetes de su distribución.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -180,8 +180,8 @@
         <translation>Ya hay otro proceso en ejecución.</translation>
     </message>
     <message>
-        <source>Installing libraries...</source>
-        <translation>Instalando bibliotecas...</translation>
+        <source>Installing gaming tools...</source>
+        <translation>Instalando herramientas de juego...</translation>
     </message>
     <message>
         <source>System update starting...</source>

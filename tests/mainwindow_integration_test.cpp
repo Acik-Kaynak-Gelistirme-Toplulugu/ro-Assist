@@ -17,6 +17,8 @@ private slots:
     void firstRunRequiresOrderedCompletion();
     void welcomePageCanOpenAndReturnToItsCurrentStep();
     void printerSupportPreferencesArePersisted();
+    void telemetryPreferencePagePersistsSliderLevel();
+    void updateScreenShowsNouveauRiskAndRoControlAction();
 };
 
 void MainWindowIntegrationTest::initTestCase()
@@ -32,6 +34,10 @@ void MainWindowIntegrationTest::initTestCase()
 
 void MainWindowIntegrationTest::init()
 {
+    qunsetenv("RO_ASSIST_TEST_LSPCI");
+    qunsetenv("RO_ASSIST_TEST_LSMOD");
+    qunsetenv("RO_ASSIST_TEST_RO_CONTROL_AVAILABLE");
+    qunsetenv("RO_ASSIST_TEST_REBOOT_REQUIRED");
     QSettings settings(QSettings::IniFormat, QSettings::UserScope,
                        "Project-Ro-ASD", "ro-assist");
     settings.clear();
@@ -117,7 +123,7 @@ void MainWindowIntegrationTest::firstRunRequiresOrderedCompletion()
                               Q_ARG(QAction *, &english));
     QCOMPARE(nextButton->text(), QString("Next"));
 
-    for (int index = 0; index < 4; ++index) {
+    for (int index = 0; index < 5; ++index) {
         QMetaObject::invokeMethod(&window, "advanceWelcome");
     }
     QCOMPARE(nextButton->text(), QString("Open ro-Assist"));
@@ -200,6 +206,88 @@ void MainWindowIntegrationTest::printerSupportPreferencesArePersisted()
     QTest::mouseClick(disableButton, Qt::LeftButton);
     QCOMPARE(settings.value("printer/supportPreference").toString(),
              QString("disabled"));
+}
+
+void MainWindowIntegrationTest::telemetryPreferencePagePersistsSliderLevel()
+{
+    MainWindow window;
+    window.show();
+    QCoreApplication::processEvents();
+    auto *telemetryCard =
+        window.findChild<QPushButton *>("dashboardTelemetryCard");
+    auto *mainStack = window.findChild<QStackedWidget *>("mainStack");
+    auto *telemetryView = window.findChild<QWidget *>("telemetryView");
+    auto *slider = window.findChild<QSlider *>("telemetryLevelSlider");
+    auto *currentLevelLabel =
+        window.findChild<QLabel *>("telemetryCurrentLevelLabel");
+    QVERIFY(telemetryCard);
+    QVERIFY(mainStack);
+    QVERIFY(telemetryView);
+    QVERIFY(slider);
+    QVERIFY(currentLevelLabel);
+
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       "Project-Ro-ASD", "ro-assist");
+    QCOMPARE(slider->value(), 1);
+    QCOMPARE(settings.value("telemetry/level").toInt(), 1);
+    QCOMPARE(settings.value("telemetry/levelName").toString(),
+             QString("count"));
+
+    QMetaObject::invokeMethod(&window, "showDashboardScreen");
+    QTest::mouseClick(telemetryCard, Qt::LeftButton);
+    QCOMPARE(mainStack->currentWidget(), telemetryView);
+
+    QAction english;
+    english.setData(static_cast<int>(MainWindow::EN));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &english));
+    QVERIFY(currentLevelLabel->text().contains("Selected level"));
+    QVERIFY(currentLevelLabel->text().contains("Count"));
+
+    slider->setValue(0);
+    settings.sync();
+    QCOMPARE(settings.value("telemetry/level").toInt(), 0);
+    QCOMPARE(settings.value("telemetry/levelName").toString(), QString("off"));
+
+    slider->setValue(3);
+    settings.sync();
+    QCOMPARE(settings.value("telemetry/level").toInt(), 3);
+    QCOMPARE(settings.value("telemetry/levelName").toString(),
+             QString("extended"));
+    QVERIFY(currentLevelLabel->text().contains("Extended"));
+}
+
+void MainWindowIntegrationTest::updateScreenShowsNouveauRiskAndRoControlAction()
+{
+    qputenv("RO_ASSIST_TEST_LSPCI",
+            "01:00.0 VGA compatible controller: NVIDIA Corporation TU116");
+    qputenv("RO_ASSIST_TEST_LSMOD", "nouveau 3891200 2");
+    qputenv("RO_ASSIST_TEST_RO_CONTROL_AVAILABLE", "1");
+
+    MainWindow window;
+    window.show();
+    QCoreApplication::processEvents();
+
+    QAction english;
+    english.setData(static_cast<int>(MainWindow::EN));
+    QMetaObject::invokeMethod(&window, "changeLanguageAction",
+                              Q_ARG(QAction *, &english));
+    QMetaObject::invokeMethod(&window, "showUpdateScreen");
+
+    auto *riskLabel =
+        window.findChild<QLabel *>("maintenanceRiskLabel");
+    auto *roControlButton =
+        window.findChild<QPushButton *>("openRoControlButton");
+    QVERIFY(riskLabel);
+    QVERIFY(roControlButton);
+    QVERIFY(riskLabel->text().contains("NVIDIA GPU with nouveau"));
+    QVERIFY(!roControlButton->isHidden());
+    QVERIFY(roControlButton->isEnabled());
+    QCOMPARE(roControlButton->text(), QString("Open ro Control"));
+
+    qunsetenv("RO_ASSIST_TEST_LSPCI");
+    qunsetenv("RO_ASSIST_TEST_LSMOD");
+    qunsetenv("RO_ASSIST_TEST_RO_CONTROL_AVAILABLE");
 }
 
 QTEST_MAIN(MainWindowIntegrationTest)

@@ -6,14 +6,17 @@ Language: English | [Turkish](docs/README.tr.md)
 ![Platform](https://img.shields.io/badge/platform-Fedora_43_KDE-green.svg)
 ![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
 
-ro-Assist is a Qt6 desktop assistant built specifically for Fedora 43 KDE Plasma systems. It executes update workflows and reports progress through a simple GUI while preserving native desktop behavior where possible.
+ro-Assist is a Qt6 first-run and maintenance center built specifically for Fedora 43 KDE Plasma based Ro-ASD systems. It guides users through safe update workflows, recommended setup actions, and project resources while keeping hardware driver management delegated to ro Control.
 
 ## Features
 
-- Real-time update progress tracking from command output parsing.
+- Controlled DNF, Flatpak, and Snap update steps with progress and logs.
+- Pre-update safety checks for known risk states such as NVIDIA hardware using nouveau, low disk space, and pending reboots.
+- ro Control handoff for hardware, GPU, and driver status instead of installing graphics drivers directly.
 - Qt6-based desktop interface tuned for Fedora 43 KDE Plasma.
 - Package management integration centered on Fedora workflows.
 - First-run welcome flow followed by a page dashboard for later launches.
+- Basic gaming tool setup for GameMode, MangoHud, and Vulkan utilities.
 - Optional printer and scanner support through the `ro-printer-support` package.
 - Breeze style and themed icon integration when running inside KDE.
 

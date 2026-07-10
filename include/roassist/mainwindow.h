@@ -1,12 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "roassist/system_services.h"
+
 #include <QMainWindow>
 #include <QToolButton>
 #include <QLabel>
 #include <QPushButton>
 #include <QProgressBar>
 #include <QProcess>
+#include <QSlider>
 #include <QStackedWidget>
 #include <QTextEdit>
 #include <QNetworkInformation>
@@ -46,6 +49,7 @@ private slots:
     void disablePrinterSupport();
     void openPrinterSettings();
     void openScannerApplication();
+    void openRoControl();
     void handlePrinterSupportOutput();
     void handlePrinterSupportErrorOutput();
     void handlePrinterSupportFinished(int exitCode, QProcess::ExitStatus exitStatus);
@@ -58,6 +62,7 @@ private slots:
     void showSocialScreen();
     void showCommunityScreen();
     void showPrinterSupportScreen();
+    void showTelemetryScreen();
     void showWelcomeScreen();
     void showDashboardScreen();
     void showHomeScreen();
@@ -72,6 +77,7 @@ private slots:
 
     void toggleUpdateLogs();
     void toggleLibraryLogs();
+    void setTelemetryLevel(int level);
 
 private:
     void setupUi();
@@ -83,9 +89,15 @@ private:
     void detectSystemLanguageAndTheme();
     void appendLog(const QString &text, const QString &color = "#666666");
     void appendPrinterLog(const QString &text, const QString &color = "#666666");
+    void refreshMaintenanceStatus();
     void setInitialUpdateStatus();
     void setOperationRunning(OperationType operation);
     void clearActiveOperation();
+    void startNextSystemUpdateStep();
+    void finishSystemUpdateWorkflow();
+    void handleSystemUpdateStepFinished(int exitCode,
+                                        QProcess::ExitStatus exitStatus);
+    void preparePackageProcessEnvironment();
     bool isOperationRunning() const;
     bool isLibraryOperationActive() const;
     bool isPrinterSupportOperationActive() const;
@@ -97,10 +109,13 @@ protected:
 private:
     QLabel *versionLabel;
     QLabel *statusLabel;
+    QLabel *updateRiskLabel;
+    QLabel *updatePlanLabel;
     QLabel *libraryStatusLabel;
     
     QPushButton *updateButton;
     QPushButton *libraryInstallButton;
+    QPushButton *openRoControlButton;
     
     QProgressBar *progressBar;
     QProgressBar *libraryProgressBar;
@@ -120,6 +135,7 @@ private:
     QWidget *socialViewWidget;
     QWidget *communityViewWidget;
     QWidget *printerSupportViewWidget;
+    QWidget *telemetryViewWidget;
 
     QStackedWidget *welcomeStack;
 
@@ -141,16 +157,19 @@ private:
     QPushButton *backFromAppStoreBtn;
     QPushButton *backFromSocialBtn;
     QPushButton *backFromCommunityBtn;
+    QPushButton *backFromTelemetryBtn;
 
     QLabel *welcomeProgressLabel;
     QLabel *dashboardGreetingLabel;
     QLabel *dashboardDescriptionLabel;
+    QLabel *dashboardStatusLabel;
     QPushButton *dashboardUpdateCard;
     QPushButton *dashboardSocialCard;
     QPushButton *dashboardStoreCard;
     QPushButton *dashboardCommunityCard;
     QPushButton *dashboardLibraryCard;
     QPushButton *dashboardPrinterCard;
+    QPushButton *dashboardTelemetryCard;
 
     // Slide specific elements
     QLabel *slide1Title;
@@ -167,6 +186,9 @@ private:
     
     QLabel *slide5Title;
     QLabel *slide5Desc;
+
+    QLabel *slide6Title;
+    QLabel *slide6Desc;
 
     QLabel *socialTitleLabel;
     QLabel *socialDescriptionLabel;
@@ -189,6 +211,23 @@ private:
     QPushButton *openScannerButton;
     QProgressBar *printerSupportProgressBar;
 
+    QLabel *telemetryTitleLabel;
+    QLabel *telemetryIntroLabel;
+    QLabel *telemetryPurposeTitleLabel;
+    QLabel *telemetryPurposeTextLabel;
+    QLabel *telemetryLevelsTitleLabel;
+    QLabel *telemetryLevelsTextLabel;
+    QLabel *telemetryDoesNotCollectTitleLabel;
+    QLabel *telemetryDoesNotCollectTextLabel;
+    QLabel *telemetrySliderTitleLabel;
+    QLabel *telemetryCurrentLevelLabel;
+    QLabel *telemetryLevelDescriptionLabel;
+    QLabel *telemetryOffLabel;
+    QLabel *telemetryCountLabel;
+    QLabel *telemetryBasicLabel;
+    QLabel *telemetryExtendedLabel;
+    QSlider *telemetryLevelSlider;
+
     // App Store View special elements
     QLabel *appStoreTitleLabel;
     QLabel *appStorePlaceholderIcon;
@@ -198,12 +237,16 @@ private:
     Language currentLang;
     Theme currentTheme;
     OperationType activeOperation;
+    QVector<RoAssist::ProcessCommand> systemUpdateCommands;
+    int currentSystemUpdateStep;
     bool transactionPhaseStarted;
     bool isTerminatingIntentionally;
+    bool systemUpdateHadFailures;
     bool isNetworkConnected;
     bool isLibraryInstalled;
     bool isPrinterSupportInstalled;
     bool welcomeCompleted;
+    RoAssist::SystemRiskSnapshot lastRiskSnapshot;
 };
 
 #endif // MAINWINDOW_H

@@ -1,7 +1,7 @@
 Name:           ro-assist
 Version:        0.1.2
 Release:        1%{?dist}
-Summary:        System management and update assistant for Fedora Linux
+Summary:        First-run and maintenance center for Ro-ASD systems
 ExclusiveArch:  x86_64 aarch64
 
 License:        GPLv3+
@@ -16,7 +16,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  appstream
 
 %description
-ro-Assist is a system management and update assistant for Linux systems, designed primarily for Fedora. It provides an intuitive GUI to handle system wide updates including DNF packages, Flatpaks, and Snaps.
+ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides users through controlled DNF, Flatpak, and Snap update workflows, basic setup actions, support links, and safe handoff to ro Control for hardware and driver status.
 
 %prep
 %autosetup -p1

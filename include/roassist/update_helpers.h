@@ -20,7 +20,6 @@ struct TransactionProgress {
     int total;
 };
 
-QString buildSystemUpdateCommand();
 std::optional<TransactionProgress> parseTransactionProgress(const QString &output);
 std::optional<int> parseDownloadPercent(const QString &output);
 bool containsNoWorkMarker(const QString &output);

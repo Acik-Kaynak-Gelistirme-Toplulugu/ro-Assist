@@ -1,4 +1,5 @@
 #include "roassist/update_helpers.h"
+#include "roassist/system_services.h"
 
 #include <QtTest/QtTest>
 
@@ -10,20 +11,62 @@ class UpdateHelpersTest : public QObject
     Q_OBJECT
 
 private slots:
-    void buildsSystemUpdateCommand();
+    void buildsSplitSystemUpdatePlan();
+    void detectsNvidiaNouveauRisk();
+    void classifiesRebootRequirement();
     void parsesLatestTransactionProgress();
     void parsesLatestDownloadPercent();
     void detectsNoWorkMarkers();
     void classifiesCheckUpdateResults();
 };
 
-void UpdateHelpersTest::buildsSystemUpdateCommand()
+void UpdateHelpersTest::buildsSplitSystemUpdatePlan()
 {
-    const QString command = RoAssist::UpdateHelpers::buildSystemUpdateCommand();
-    QVERIFY(command.contains("dnf upgrade -y"));
-    QVERIFY(command.contains("flatpak update -y"));
-    QVERIFY(command.contains("snap refresh"));
-    QVERIFY(command.contains("&&"));
+    const auto commands =
+        RoAssist::SystemUpdateService::buildUpdateCommands(true, true);
+
+    QCOMPARE(commands.size(), 3);
+    QCOMPARE(commands.at(0).program, QString("pkexec"));
+    QCOMPARE(commands.at(0).arguments, QStringList({"dnf", "upgrade", "-y"}));
+    QCOMPARE(commands.at(1).program, QString("flatpak"));
+    QCOMPARE(commands.at(1).arguments, QStringList({"update", "-y"}));
+    QCOMPARE(commands.at(2).program, QString("pkexec"));
+    QCOMPARE(commands.at(2).arguments, QStringList({"snap", "refresh"}));
+    QVERIFY(!RoAssist::SystemUpdateService::commandPreview(commands.at(0))
+                 .contains("sh -c"));
+
+    const auto dnfOnly =
+        RoAssist::SystemUpdateService::buildUpdateCommands(false, false);
+    QCOMPARE(dnfOnly.size(), 1);
+}
+
+void UpdateHelpersTest::detectsNvidiaNouveauRisk()
+{
+    const QString lspci =
+        "01:00.0 VGA compatible controller: NVIDIA Corporation TU116\n";
+    const QString lsmod =
+        "nouveau              3891200  2\n"
+        "drm_ttm_helper         16384  1 nouveau\n";
+
+    QVERIFY(RoAssist::SystemRiskService::detectsNvidiaGpu(lspci));
+    QVERIFY(RoAssist::SystemRiskService::detectsNouveauModule(lsmod));
+
+    RoAssist::SystemRiskSnapshot snapshot;
+    snapshot.nvidiaGpuDetected = true;
+    snapshot.nouveauLoaded = true;
+    QVERIFY(RoAssist::SystemRiskService::isHighRiskGraphicsState(snapshot));
+    QVERIFY(RoAssist::SystemRiskService::warningCodes(snapshot)
+                .contains("nvidia-nouveau"));
+}
+
+void UpdateHelpersTest::classifiesRebootRequirement()
+{
+    QVERIFY(RoAssist::SystemRiskService::rebootRequiredFromNeedsRestarting(
+        1, "Reboot is required to fully utilize these updates."));
+    QVERIFY(RoAssist::SystemRiskService::rebootRequiredFromNeedsRestarting(
+        0, "restart is required"));
+    QVERIFY(!RoAssist::SystemRiskService::rebootRequiredFromNeedsRestarting(
+        0, "No core libraries or services have been updated."));
 }
 
 void UpdateHelpersTest::parsesLatestTransactionProgress()

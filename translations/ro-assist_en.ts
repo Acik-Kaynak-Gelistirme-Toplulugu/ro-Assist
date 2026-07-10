@@ -48,12 +48,12 @@
         <translation>Update System</translation>
     </message>
     <message>
-        <source>Update Your System With One Click</source>
-        <translation>Update Your System With One Click</translation>
+        <source>Update Your System With Control</source>
+        <translation>Update Your System With Control</translation>
     </message>
     <message>
-        <source>Updates all system packages, including flatpak and snap.</source>
-        <translation>Updates all system packages, including flatpak and snap.</translation>
+        <source>Shows update risks and tracks DNF, Flatpak and Snap as separate steps.</source>
+        <translation>Shows update risks and tracks DNF, Flatpak and Snap as separate steps.</translation>
     </message>
     <message>
         <source>Go to Update Screen</source>
@@ -96,20 +96,20 @@
         <translation>Join the Club</translation>
     </message>
     <message>
-        <source>Game Library</source>
-        <translation>Game Library</translation>
+        <source>Basic Gaming Tools</source>
+        <translation>Basic Gaming Tools</translation>
     </message>
     <message>
-        <source>You can download and update game libraries.</source>
-        <translation>You can download and update game libraries.</translation>
+        <source>Install or update GameMode, MangoHud and Vulkan tools. Driver handling stays in ro Control.</source>
+        <translation>Install or update GameMode, MangoHud and Vulkan tools. Driver handling stays in ro Control.</translation>
     </message>
     <message>
-        <source>Open Library Screen</source>
-        <translation>Open Library Screen</translation>
+        <source>Open Gaming Tools</source>
+        <translation>Open Gaming Tools</translation>
     </message>
     <message>
-        <source>Start Download</source>
-        <translation>Start Download</translation>
+        <source>GameMode, MangoHud and Vulkan tools can be prepared.</source>
+        <translation>GameMode, MangoHud and Vulkan tools can be prepared.</translation>
     </message>
     <message>
         <source>Logs...</source>
@@ -120,12 +120,12 @@
         <translation>Website</translation>
     </message>
     <message>
-        <source>Download Libraries</source>
-        <translation>Download Libraries</translation>
+        <source>Install Tools</source>
+        <translation>Install Tools</translation>
     </message>
     <message>
-        <source>Update Libraries</source>
-        <translation>Update Libraries</translation>
+        <source>Update Tools</source>
+        <translation>Update Tools</translation>
     </message>
     <message>
         <source>Checking for updates...</source>
@@ -152,12 +152,12 @@
         <translation>Close</translation>
     </message>
     <message>
-        <source>Store Version</source>
-        <translation>Store Version</translation>
+        <source>Discover Not Found</source>
+        <translation>Discover Not Found</translation>
     </message>
     <message>
-        <source>Integration coming soon!</source>
-        <translation>Integration coming soon!</translation>
+        <source>Discover could not be started. Install or open applications through your distribution package manager.</source>
+        <translation>Discover could not be started. Install or open applications through your distribution package manager.</translation>
     </message>
     <message>
         <source>Error</source>
@@ -180,8 +180,8 @@
         <translation>Another operation is already running.</translation>
     </message>
     <message>
-        <source>Installing libraries...</source>
-        <translation>Installing libraries...</translation>
+        <source>Installing gaming tools...</source>
+        <translation>Installing gaming tools...</translation>
     </message>
     <message>
         <source>System update starting...</source>

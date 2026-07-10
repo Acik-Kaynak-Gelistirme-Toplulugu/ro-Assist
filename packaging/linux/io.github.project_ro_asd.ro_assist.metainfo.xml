@@ -2,16 +2,16 @@
 <component type="desktop-application">
   <id>io.github.project_ro_asd.ro_assist</id>
   <name>ro-Assist</name>
-  <summary>Ro-ASD update and maintenance assistant</summary>
-  <summary xml:lang="tr">Ro-ASD güncelleme ve bakım asistanı</summary>
-  <summary xml:lang="es">Asistente de actualización y mantenimiento de Ro-ASD</summary>
+  <summary>Ro-ASD first-run and maintenance center</summary>
+  <summary xml:lang="tr">Ro-ASD ilk kurulum ve bakım merkezi</summary>
+  <summary xml:lang="es">Centro de primer inicio y mantenimiento de Ro-ASD</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <launchable type="desktop-id">ro-assist.desktop</launchable>
   <description>
-    <p>ro-Assist is a Qt desktop application focused on Ro-ASD system updates and maintenance workflows.</p>
-    <p xml:lang="tr">ro-Assist, Ro-ASD sistemi güncellemeleri ve bakım iş akışlarına odaklanan bir Qt masaüstü uygulamasıdır.</p>
-    <p xml:lang="es">ro-Assist es una aplicación de escritorio Qt centrada en las actualizaciones del sistema Ro-ASD y los flujos de trabajo de mantenimiento.</p>
+    <p>ro-Assist guides Ro-ASD users through controlled system updates, recommended setup actions, project resources, and safe handoff to ro Control for hardware and driver status.</p>
+    <p xml:lang="tr">ro-Assist, Ro-ASD kullanıcılarını kontrollü sistem güncellemeleri, önerilen hazırlık adımları, proje kaynakları ve donanım/sürücü durumu için ro Control yönlendirmesiyle destekler.</p>
+    <p xml:lang="es">ro-Assist guía a los usuarios de Ro-ASD por actualizaciones controladas, acciones de preparación recomendadas, recursos del proyecto y derivación segura a ro Control para hardware y controladores.</p>
   </description>
   <categories>
     <category>System</category>

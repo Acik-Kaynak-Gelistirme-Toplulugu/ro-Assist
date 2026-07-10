@@ -2,15 +2,15 @@
 Type=Application
 Version=1.0
 Name=ro-Assist
-GenericName=System Maintenance Assistant
-GenericName[tr]=Sistem Bakım Yardımcısı
-GenericName[es]=Asistente de Mantenimiento del Sistema
-Comment=Ro-ASD update and maintenance assistant
-Comment[tr]=Ro-ASD update and maintenance assistant
-Comment[es]=Ro-ASD update and maintenance assistant
+GenericName=First-Run and Maintenance Center
+GenericName[tr]=İlk Kurulum ve Bakım Merkezi
+GenericName[es]=Centro de Primer Inicio y Mantenimiento
+Comment=Ro-ASD first-run, update, and maintenance center
+Comment[tr]=Ro-ASD ilk kurulum, güncelleme ve bakım merkezi
+Comment[es]=Centro de primer inicio, actualización y mantenimiento de Ro-ASD
 Exec=env QT_QPA_PLATFORM=xcb QT_XCB_GL_INTEGRATION=xcb_glx ro-assist
 Icon=ro-assist
 Terminal=false
 Categories=System;Utility;Qt;KDE;
-Keywords=fedora;update;dnf;flatpak;snap;kde;maintenance;
+Keywords=fedora;ro-asd;update;dnf;flatpak;snap;kde;maintenance;welcome;
 StartupNotify=true
