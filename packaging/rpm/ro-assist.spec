@@ -1,5 +1,5 @@
 Name:           ro-assist
-Version:        0.1.2
+Version:        0.2.0
 Release:        1%{?dist}
 Summary:        First-run and maintenance center for Ro-ASD systems
 ExclusiveArch:  x86_64 aarch64
@@ -37,6 +37,11 @@ ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides us
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
+* Fri Jul 10 2026 Project Ro-ASD <contact@roasd.org> - 0.2.0-1
+- Harden maintenance workflow with split DNF, Flatpak, and Snap update steps.
+- Add NVIDIA nouveau risk detection, reboot warnings, and ro Control handoff.
+- Reposition ro-Assist as the Ro-ASD first-run and maintenance center.
+
 * Wed Jun 24 2026 Project Ro-ASD <contact@roasd.org> - 0.1.2-1
 - Add the first-run welcome flow and a reusable dashboard.
 - Add printer and scanner support controls through the ro-printer-support package.
