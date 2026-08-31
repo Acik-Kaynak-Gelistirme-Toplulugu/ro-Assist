@@ -1,6 +1,8 @@
+%global debug_package %{nil}
+
 Name:           ro-assist
 Version:        0.2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        First-run and maintenance center for Ro-ASD systems
 ExclusiveArch:  x86_64 aarch64
 
@@ -37,6 +39,9 @@ ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides us
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
+* Fri Aug 28 2026 Project Ro-ASD <contact@roasd.org> - 0.2.0-2
+- Rebuild for Fedora 44 and publish canonical binary and source RPM artifacts.
+
 * Fri Jul 10 2026 Project Ro-ASD <contact@roasd.org> - 0.2.0-1
 - Harden maintenance workflow with split DNF, Flatpak, and Snap update steps.
 - Add NVIDIA nouveau risk detection, reboot warnings, and ro Control handoff.

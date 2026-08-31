@@ -107,7 +107,7 @@ set_tests_properties(ro-assist-smoke-test PROPERTIES
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "ro-assist")
 set(CPACK_PACKAGE_VERSION "0.2.0")
-set(CPACK_PACKAGE_RELEASE 1)
+set(CPACK_PACKAGE_RELEASE 2)
 set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <ebubekir.bulut99@gmail.com>")
 set(CPACK_PACKAGE_VENDOR "Project Ro-ASD")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Project-Ro-ASD/ro-Assist")

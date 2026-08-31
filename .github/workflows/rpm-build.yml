@@ -26,7 +26,7 @@ jobs:
   build-rpm:
     name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:43
+    container: fedora:44
     timeout-minutes: 45
 
     strategy:
@@ -46,6 +46,7 @@ jobs:
         run: |
           dnf install -y \
             gcc-c++ \
+            git \
             cmake \
             ninja-build \
             rpm-build \
@@ -62,7 +63,23 @@ jobs:
           ctest --preset ci
           desktop-file-validate packaging/linux/ro-assist.desktop
           appstreamcli validate packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml
-          cpack -G RPM --config build/ninja/CPackConfig.cmake
+          version="$(awk '/^project\(ro-assist VERSION / { print $3; exit }' CMakeLists.txt)"
+          spec_version="$(awk '/^Version:/ { print $2; exit }' packaging/rpm/ro-assist.spec)"
+          metadata_version="$(sed -n 's/.*<release version="\([^"]*\)".*/\1/p' packaging/linux/io.github.project_ro_asd.ro_assist.metainfo.xml | head -n 1)"
+          test "$version" = "$spec_version"
+          test "$version" = "$metadata_version"
+
+          topdir="$HOME/rpmbuild"
+          mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} build/ninja/packages
+          git archive --format=tar.gz --prefix="ro-assist-${version}/" \
+            --output="$topdir/SOURCES/ro-assist-${version}.tar.gz" HEAD
+          cp packaging/rpm/ro-assist.spec "$topdir/SPECS/"
+          rpmbuild -ba --define "_topdir $topdir" --define "dist .fc44" \
+            "$topdir/SPECS/ro-assist.spec"
+          find "$topdir/RPMS" -type f -name '*.rpm' -exec cp -v {} build/ninja/packages/ \;
+          if [ "${{ matrix.arch }}" = x64 ]; then
+            cp -v "$topdir"/SRPMS/*.src.rpm build/ninja/packages/
+          fi
 
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v7
@@ -75,7 +92,7 @@ jobs:
     name: validate-ro-assist-${{ matrix.arch }}
     needs: build-rpm
     runs-on: ${{ matrix.runner }}
-    container: fedora:43
+    container: fedora:44
     timeout-minutes: 30
 
     strategy:
@@ -104,9 +121,9 @@ jobs:
           name: ro-assist-${{ matrix.arch }}
           path: artifact-rpm
 
-      - name: Validate Fedora 43 RPM install path
+      - name: Validate Fedora 44 RPM install path
         run: |
-          rpm_path="$(find artifact-rpm -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
+          rpm_path="$(find artifact-rpm -maxdepth 1 -type f -name '*.rpm' ! -name '*.src.rpm' | head -n 1)"
           test -n "$rpm_path"
           packaging/scripts/validate-fedora-rpm.sh "$rpm_path"
 

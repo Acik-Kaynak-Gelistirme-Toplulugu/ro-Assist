@@ -18,7 +18,7 @@ jobs:
   build-and-test:
     name: ro-assist-${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
-    container: fedora:43
+    container: fedora:44
     timeout-minutes: 30
 
     strategy:

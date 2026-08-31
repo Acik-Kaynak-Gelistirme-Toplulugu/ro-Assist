@@ -13,6 +13,10 @@ if [[ ! -f "$rpm_path" ]]; then
   exit 1
 fi
 
+test "$(rpm -E '%{fedora}')" = "44"
+test "$(basename "$rpm_path")" = "$(rpm -qp --qf '%{NVRA}.rpm' "$rpm_path")"
+test "$(rpm -qp --qf '%{RELEASE}' "$rpm_path")" = "2.fc44"
+
 work_dir="$(mktemp -d)"
 repo_dir="$work_dir/repo"
 repo_file="/etc/yum.repos.d/ro-assist-local.repo"
@@ -56,18 +60,7 @@ ldd -r /usr/libexec/ro-assist/ro-assist
 requirements="$(rpm -qpR "$rpm_path")"
 printf '%s\n' "$requirements"
 
-fedora_major="$(rpm -E '%{fedora}' 2>/dev/null || echo 43)"
-# Fedora N ships Qt 6.(N-32). Fedora 43 → Qt 6.11.
-qt_threshold="$(( fedora_major - 32 ))"
-
-while IFS= read -r req; do
-  if [[ $req =~ Qt_6\.[0-9]+(_PRIVATE_API)? ]]; then
-    match="${BASH_REMATCH[0]}"
-    ver="${match#Qt_6.}"
-    ver="${ver%_PRIVATE_API}"
-    if (( ver >= qt_threshold )); then
-      echo "RPM requires Qt 6.${ver} symbols; Fedora ${fedora_major} only provides up to Qt 6.${qt_threshold}." >&2
-      exit 1
-    fi
-  fi
-done <<< "$requirements"
+if grep -q '_PRIVATE_API' <<< "$requirements"; then
+  echo "RPM must not depend on private Qt ABI symbols." >&2
+  exit 1
+fi

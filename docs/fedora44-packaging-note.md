@@ -1,10 +1,10 @@
 # Ro Assist Packaging Note
 
-This package is expected to install inside the Ro-ASD Fedora 43 KDE ISO directly from `ro-repo`.
+This package is expected to install inside the Ro-ASD Fedora 44 KDE ISO directly from `ro-repo`.
 
 ## Target Environment
 
-- Fedora 43 KDE Plasma
+- Fedora 44 KDE Plasma
 - Installation source: active `ro-repo`
 
 Expected install path during ISO build:
@@ -19,16 +19,16 @@ If any command fails, the ISO build must stop.
 
 ## Packaging Rules
 
-- `ro-assist` must be built in a Fedora 43 environment.
-- Builds from Fedora 44, Rawhide, or Qt 6.10 environments are not accepted.
+- `ro-assist` must be built in a Fedora 44 environment.
+- Builds from Fedora releases other than 44 or from Rawhide are not accepted.
 - The package must provide the `/usr/bin/ro-assist` launcher and `/usr/libexec/ro-assist/ro-assist` Qt binary.
 - The package must install an autostart entry for the first KDE login.
-- The package must remain compatible with Fedora 43 Qt libraries.
+- The package must remain compatible with Fedora 44 Qt libraries.
 - Repository metadata must be regenerated after publishing the RPM.
 
 ## Required Acceptance Checks
 
-These checks must pass in a clean Fedora 43 KDE, chroot, or mock environment:
+These checks must pass in a clean Fedora 44 KDE, chroot, or mock environment:
 
 ```bash
 dnf clean all
@@ -40,23 +40,20 @@ ldd -r /usr/libexec/ro-assist/ro-assist
 rpm -qpR ro-assist-*.rpm
 ```
 
-If `rpm -qpR` shows either of the following, the package is still considered incompatible for Fedora 43:
-
-- `Qt_6.10`
-- `Qt_6.10_PRIVATE_API`
+If `rpm -qpR` shows any `Qt_*_PRIVATE_API` dependency, the package is considered incompatible for Fedora 44.
 
 ## CI Enforcement
 
 GitHub Actions enforces this policy by:
 
-- building RPM artifacts on a Fedora 41 Qt baseline older than Fedora 43
+- building RPM artifacts directly in Fedora 44
 - validating the desktop file and AppStream metadata
-- validating installation inside `fedora:43`
+- validating installation inside `fedora:44`
 - creating a temporary repo from the built RPM
 - installing `ro-assist` through `dnf install ro-assist`
 - verifying `/usr/bin/ro-assist` and `/usr/libexec/ro-assist/ro-assist`
 - checking `ldd -r /usr/libexec/ro-assist/ro-assist`
-- rejecting RPMs that require `Qt_6.10` or `Qt_6.10_PRIVATE_API`
+- rejecting RPMs that require private Qt ABI symbols
 
 ## First Login Behavior
 
