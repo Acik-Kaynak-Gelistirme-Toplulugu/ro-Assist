@@ -71,8 +71,14 @@ jobs:
 
           topdir="$HOME/rpmbuild"
           mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} build/ninja/packages
-          git archive --format=tar.gz --prefix="ro-assist-${version}/" \
-            --output="$topdir/SOURCES/ro-assist-${version}.tar.gz" HEAD
+          stage_dir="$(mktemp -d)"
+          mkdir -p "$stage_dir/ro-assist-${version}"
+          tar --exclude-vcs --exclude='./build' -cf - . | \
+            tar -C "$stage_dir/ro-assist-${version}" -xf -
+          tar -C "$stage_dir" -czf \
+            "$topdir/SOURCES/ro-assist-${version}.tar.gz" \
+            "ro-assist-${version}"
+          rm -rf "$stage_dir"
           cp packaging/rpm/ro-assist.spec "$topdir/SPECS/"
           rpmbuild -ba --define "_topdir $topdir" --define "dist .fc44" \
             "$topdir/SPECS/ro-assist.spec"
