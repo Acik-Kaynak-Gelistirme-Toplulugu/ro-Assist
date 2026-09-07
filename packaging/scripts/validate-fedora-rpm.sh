@@ -15,7 +15,7 @@ fi
 
 test "$(rpm -E '%{fedora}')" = "44"
 test "$(basename "$rpm_path")" = "$(rpm -qp --qf '%{NVRA}.rpm' "$rpm_path")"
-test "$(rpm -qp --qf '%{RELEASE}' "$rpm_path")" = "2.fc44"
+test "$(rpm -qp --qf '%{RELEASE}' "$rpm_path")" = "1.fc44"
 
 work_dir="$(mktemp -d)"
 repo_dir="$work_dir/repo"
