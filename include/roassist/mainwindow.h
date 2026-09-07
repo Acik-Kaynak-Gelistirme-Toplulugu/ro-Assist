@@ -15,6 +15,7 @@
 #include <QNetworkInformation>
 #include <QMenu>
 #include <QAction>
+#include <QFutureWatcher>
 #include <QString>
 
 class MainWindow : public QMainWindow
@@ -90,6 +91,7 @@ private:
     void appendLog(const QString &text, const QString &color = "#666666");
     void appendPrinterLog(const QString &text, const QString &color = "#666666");
     void refreshMaintenanceStatus();
+    void applyMaintenanceStatus();
     void setInitialUpdateStatus();
     void setOperationRunning(OperationType operation);
     void clearActiveOperation();
@@ -124,6 +126,8 @@ private:
     QProcess *checkUpdateProcess;
     QProcess *checkLibProcess;
     QProcess *printerSupportProcess;
+    QFutureWatcher<RoAssist::SystemRiskSnapshot> *riskWatcher;
+    bool riskSnapshotReady = false;
 
     // Main layout
     QStackedWidget *mainStack;

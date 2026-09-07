@@ -21,16 +21,19 @@
 #include <QPaintEvent>
 #include <QPalette>
 #include <QPainterPath>
+#include <QPixmap>
 #include <QPropertyAnimation>
 #include <QProcessEnvironment>
 #include <QScreen>
 #include <QScrollBar>
+#include <QScrollArea>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStyleHints>
 #include <QUrl>
 #include <QVariantAnimation>
 #include <QVBoxLayout>
+#include <QtConcurrentRun>
 
 namespace {
 
@@ -114,6 +117,18 @@ QString cssColor(const QColor &color) {
       .arg(color.green())
       .arg(color.blue())
       .arg(color.alpha());
+}
+
+QScrollArea *makeScrollablePanel(QWidget *parent, QWidget *content,
+                                 const QString &objectName) {
+  auto *scrollArea = new QScrollArea(parent);
+  scrollArea->setObjectName(objectName);
+  scrollArea->setWidgetResizable(true);
+  scrollArea->setFrameShape(QFrame::NoFrame);
+  scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  scrollArea->setWidget(content);
+  return scrollArea;
 }
 
 struct ThemeTokens {
@@ -561,6 +576,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), updateProcess(new QProcess(this)),
       checkUpdateProcess(new QProcess(this)),
       checkLibProcess(new QProcess(this)), printerSupportProcess(new QProcess(this)),
+      riskWatcher(new QFutureWatcher<RoAssist::SystemRiskSnapshot>(this)),
       welcomeStack(new QStackedWidget(this)),
       logConsole(new QTextEdit(this)),
       libraryLogConsole(new QTextEdit(this)), printerLogConsole(new QTextEdit(this)),
@@ -586,6 +602,12 @@ MainWindow::MainWindow(QWidget *parent)
   }
 
   setupUi();
+  connect(riskWatcher, &QFutureWatcher<RoAssist::SystemRiskSnapshot>::finished,
+          this, [this]() {
+            lastRiskSnapshot = riskWatcher->result();
+            riskSnapshotReady = true;
+            applyMaintenanceStatus();
+          });
   updateUiTextAndImages();
   setupStyle();
 
@@ -606,10 +628,13 @@ MainWindow::MainWindow(QWidget *parent)
   libraryLogConsole->hide();
   printerLogConsole->hide();
   if (QScreen *screen = QGuiApplication::primaryScreen()) {
-    QRect screenGeometry = screen->geometry();
-    int width = screenGeometry.width() * 0.66;
-    int height = screenGeometry.height() * 0.66;
-    resize(width, height);
+    const QRect availableGeometry = screen->availableGeometry();
+    const int width = std::clamp(availableGeometry.width() * 88 / 100, 960,
+                                 1440);
+    const int height = std::clamp(availableGeometry.height() * 86 / 100, 640,
+                                  900);
+    resize(std::min(width, availableGeometry.width()),
+           std::min(height, availableGeometry.height()));
   }
 
   connect(updateProcess, &QProcess::readyReadStandardOutput, this,
@@ -1282,7 +1307,10 @@ void MainWindow::setupUi() {
   printerPanelLayout->addLayout(printerContentLayout, 1);
   printerPanelLayout->addWidget(printerToolsPanel);
   printerLayout->addLayout(printerTopLayout);
-  printerLayout->addWidget(printerPanel, 1);
+  printerLayout->addWidget(
+      makeScrollablePanel(printerSupportViewWidget, printerPanel,
+                          QStringLiteral("printerSupportScrollArea")),
+      1);
 
   // 8. PRIVACY AND TELEMETRY VIEW
   telemetryViewWidget = new QWidget(this);
@@ -1443,7 +1471,10 @@ void MainWindow::setupUi() {
 
   telemetryPanelLayout->addLayout(telemetryContentLayout, 1);
   telemetryLayout->addLayout(telemetryTopLayout);
-  telemetryLayout->addWidget(telemetryPanel, 1);
+  telemetryLayout->addWidget(
+      makeScrollablePanel(telemetryViewWidget, telemetryPanel,
+                          QStringLiteral("telemetryScrollArea")),
+      1);
 
   mainStack->addWidget(welcomeViewWidget);
   mainStack->addWidget(dashboardViewWidget);
@@ -1527,20 +1558,28 @@ void MainWindow::createWelcomeSlides() {
 
 void MainWindow::createDashboard() {
   dashboardViewWidget = new QWidget(this);
-  QVBoxLayout *layout = new QVBoxLayout(dashboardViewWidget);
+  QVBoxLayout *pageLayout = new QVBoxLayout(dashboardViewWidget);
+  pageLayout->setContentsMargins(0, 0, 0, 0);
+
+  auto *dashboardContent = new QWidget(dashboardViewWidget);
+  dashboardContent->setObjectName("dashboardScrollContent");
+  QVBoxLayout *layout = new QVBoxLayout(dashboardContent);
   layout->setContentsMargins(36, 20, 36, 30);
   layout->setSpacing(20);
 
   QWidget *profilePanel =
       new GlassPanel(currentTheme == Dark, GlassPanel::Soft,
-                     dashboardViewWidget);
+                     dashboardContent);
   profilePanel->setObjectName("profilePanel");
   QHBoxLayout *profileLayout = new QHBoxLayout(profilePanel);
   profileLayout->setContentsMargins(24, 18, 24, 18);
-  QLabel *avatar = new QLabel("R", profilePanel);
+  QLabel *avatar = new QLabel(profilePanel);
   avatar->setObjectName("profileAvatar");
   avatar->setAlignment(Qt::AlignCenter);
   avatar->setFixedSize(64, 64);
+  const QPixmap logo(":/icons/ro-asd-logo.svg");
+  avatar->setPixmap(logo.scaled(50, 50, Qt::KeepAspectRatio,
+                                Qt::SmoothTransformation));
   dashboardGreetingLabel = new QLabel(profilePanel);
   dashboardGreetingLabel->setObjectName("dashboardGreeting");
   dashboardDescriptionLabel = new QLabel(profilePanel);
@@ -1563,12 +1602,12 @@ void MainWindow::createDashboard() {
   grid->setColumnStretch(0, 1);
   grid->setColumnStretch(1, 1);
 
-  auto configureCard = [this](QPushButton *&card) {
+  auto configureCard = [this, dashboardContent](QPushButton *&card) {
     card =
         new AnimatedButton(AnimatedButton::Card, currentTheme == Dark,
-                           dashboardViewWidget);
+                           dashboardContent);
     card->setObjectName("dashboardCard");
-    card->setMinimumHeight(118);
+    card->setMinimumHeight(104);
     card->setCursor(Qt::PointingHandCursor);
     card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   };
@@ -1619,6 +1658,9 @@ void MainWindow::createDashboard() {
   layout->addWidget(profilePanel);
   layout->addLayout(grid);
   layout->addStretch();
+  pageLayout->addWidget(makeScrollablePanel(
+      dashboardViewWidget, dashboardContent,
+      QStringLiteral("dashboardScrollArea")));
 }
 
 void MainWindow::updateUiTextAndImages() {
@@ -1758,11 +1800,20 @@ void MainWindow::refreshMaintenanceStatus() {
   if (!updatePlanLabel || !updateRiskLabel || !openRoControlButton)
     return;
 
+  if (!riskSnapshotReady && !riskWatcher->isRunning())
+    riskWatcher->setFuture(QtConcurrent::run(&RoAssist::SystemRiskService::collect));
+
+  applyMaintenanceStatus();
+}
+
+void MainWindow::applyMaintenanceStatus() {
+  if (!updatePlanLabel || !updateRiskLabel || !openRoControlButton)
+    return;
+
   const bool flatpakAvailable =
       RoAssist::SystemUpdateService::commandExists(QStringLiteral("flatpak"));
   const bool snapAvailable =
       RoAssist::SystemUpdateService::commandExists(QStringLiteral("snap"));
-  lastRiskSnapshot = RoAssist::SystemRiskService::collect();
 
   updatePlanLabel->setText(RoAssist::UiTexts::maintenancePlanSummary(
       currentLanguageCode(), flatpakAvailable, snapAvailable));
@@ -1799,7 +1850,8 @@ void MainWindow::refreshMaintenanceStatus() {
 
   if (activeOperation == None && updateButton)
     updateButton->setEnabled(isNetworkConnected &&
-                             checkUpdateProcess->state() == QProcess::NotRunning);
+                             checkUpdateProcess->state() == QProcess::NotRunning &&
+                             riskSnapshotReady);
 }
 
 void MainWindow::setInitialUpdateStatus() {
@@ -2155,15 +2207,18 @@ void MainWindow::openBozokCommunity() {
   QDesktopServices::openUrl(QUrl("https://github.com/Project-Ro-ASD"));
 }
 void MainWindow::showAboutDialog() {
+  const ThemeTokens tokens = tokensForTheme(currentTheme == Dark);
   QDialog dialog(this);
   dialog.setWindowTitle(
       RoAssist::UiTexts::aboutTitle(currentLanguageCode()));
-  dialog.setFixedSize(550, 400);
+  dialog.setMinimumSize(420, 320);
+  dialog.resize(std::min(620, std::max(420, width() - 64)),
+                std::min(460, std::max(320, height() - 64)));
   dialog.setStyleSheet(this->styleSheet() +
                        QString(" QDialog { background-color: %1; "
                                "border-radius: 16px; border: 1px solid %2; }")
-                           .arg(currentTheme == Dark ? "#352F44" : "#FBF9F1",
-                                currentTheme == Dark ? "#5C5470" : "#E5E1DA"));
+                           .arg(cssColor(tokens.pageMid),
+                                cssColor(tokens.border)));
 
   QVBoxLayout *layout = new QVBoxLayout(&dialog);
   layout->setContentsMargins(40, 40, 40, 40);
@@ -2173,7 +2228,7 @@ void MainWindow::showAboutDialog() {
   titleLabel->setAlignment(Qt::AlignCenter);
   titleLabel->setStyleSheet(
       QString("font-size: 42px; font-weight: 900; color: %1;")
-          .arg(currentTheme == Dark ? "#FAF0E6" : "#352F44"));
+          .arg(cssColor(tokens.text)));
 
   QLabel *descLabel = new QLabel(&dialog);
   descLabel->setWordWrap(true);
@@ -2182,24 +2237,27 @@ void MainWindow::showAboutDialog() {
       RoAssist::UiTexts::aboutDescription(currentLanguageCode());
   descLabel->setText(desc);
   descLabel->setStyleSheet(
-      "font-size: 16px; color: " +
-      QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
+      "font-size: 16px; color: " + cssColor(tokens.muted) + ";");
 
   QLabel *infoLabel = new QLabel(&dialog);
-  infoLabel->setAlignment(Qt::AlignCenter);
+  infoLabel->setObjectName("aboutInfoPanel");
+  infoLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  infoLabel->setWordWrap(true);
   infoLabel->setText(
-      QString("<span style='font-size: 15px;'><b>%1:</b> Ebubekir "
-              "Bulut<br><br><b>%2:</b> 2026</span>")
+      QString("<b>%1</b><br>Ebubekir Bulut<br><br><b>%2</b><br>2026")
           .arg(RoAssist::UiTexts::developerLabel(currentLanguageCode()))
           .arg(RoAssist::UiTexts::yearLabel(currentLanguageCode())));
   infoLabel->setStyleSheet(
-      "color: " + QString(currentTheme == Dark ? "#B9B4C7" : "#5C5470") + ";");
+      "color: " + cssColor(tokens.text) +
+      "; padding: 14px 18px; border-radius: 12px; background: " +
+      cssColor(tokens.glassEnd) + "; border: 1px solid " +
+      cssColor(tokens.border) + ";");
 
-  QPushButton *okBtn = new QPushButton(
-      RoAssist::UiTexts::closeLabel(currentLanguageCode()),
-      &dialog);
+  auto *okBtn = new AnimatedButton(AnimatedButton::Primary,
+                                   currentTheme == Dark, &dialog);
+  okBtn->setText(RoAssist::UiTexts::closeLabel(currentLanguageCode()));
   okBtn->setObjectName("actionButton");
-  okBtn->setFixedSize(200, 50);
+  okBtn->setMinimumSize(180, 48);
   okBtn->setCursor(Qt::PointingHandCursor);
   QObject::connect(okBtn, &QPushButton::clicked, &dialog, &QDialog::accept);
 
@@ -2254,8 +2312,8 @@ void MainWindow::startLibraryPackageInstall() {
 
   QString action = isLibraryInstalled ? "upgrade" : "install";
   preparePackageProcessEnvironment();
-  updateProcess->start("pkexec", QStringList()
-                                     << "dnf" << action << "-y" << "gamemode"
+  updateProcess->start("/usr/bin/pkexec", QStringList()
+                                     << "/usr/bin/dnf" << action << "-y" << "gamemode"
                                      << "mangohud" << "vulkan-loader"
                                      << "vulkan-tools");
 }
@@ -2288,8 +2346,8 @@ void MainWindow::startPrinterSupportInstall() {
   printerLogConsole->show();
   appendPrinterLog(printerSupportStatusLabel->text(), "#0066cc");
   setOperationRunning(PrinterSupportInstall);
-  printerSupportProcess->start("pkexec",
-                               QStringList() << "dnf" << "install" << "-y"
+  printerSupportProcess->start("/usr/bin/pkexec",
+                               QStringList() << "/usr/bin/dnf" << "install" << "-y"
                                              << "ro-printer-support");
 }
 

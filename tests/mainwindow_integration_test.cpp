@@ -3,6 +3,8 @@
 #include <QtTest/QtTest>
 #include <QDir>
 #include <QSettings>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QStandardPaths>
 
 class MainWindowIntegrationTest : public QObject
@@ -19,6 +21,7 @@ private slots:
     void printerSupportPreferencesArePersisted();
     void telemetryPreferencePagePersistsSliderLevel();
     void updateScreenShowsNouveauRiskAndRoControlAction();
+    void compactWindowKeepsLongPagesReachable();
 };
 
 void MainWindowIntegrationTest::initTestCase()
@@ -129,7 +132,7 @@ void MainWindowIntegrationTest::firstRunRequiresOrderedCompletion()
     QCOMPARE(nextButton->text(), QString("Open ro-Assist"));
 
     QMetaObject::invokeMethod(&window, "advanceWelcome");
-    QCOMPARE(mainStack->currentWidget(), dashboardCard->parentWidget());
+    QVERIFY(mainStack->currentWidget()->isAncestorOf(dashboardCard));
 
     MainWindow reopenedWindow;
     auto *reopenedMainStack =
@@ -138,8 +141,8 @@ void MainWindowIntegrationTest::firstRunRequiresOrderedCompletion()
         reopenedWindow.findChild<QPushButton *>("dashboardUpdateCard");
     QVERIFY(reopenedMainStack);
     QVERIFY(reopenedDashboardCard);
-    QCOMPARE(reopenedMainStack->currentWidget(),
-             reopenedDashboardCard->parentWidget());
+    QVERIFY(reopenedMainStack->currentWidget()->isAncestorOf(
+        reopenedDashboardCard));
 }
 
 void MainWindowIntegrationTest::welcomePageCanOpenAndReturnToItsCurrentStep()
@@ -257,6 +260,36 @@ void MainWindowIntegrationTest::telemetryPreferencePagePersistsSliderLevel()
     QVERIFY(currentLevelLabel->text().contains("Extended"));
 }
 
+void MainWindowIntegrationTest::compactWindowKeepsLongPagesReachable()
+{
+    MainWindow window;
+    window.resize(900, 520);
+    window.show();
+    QCoreApplication::processEvents();
+
+    QMetaObject::invokeMethod(&window, "showDashboardScreen");
+    auto *dashboardScroll =
+        window.findChild<QScrollArea *>("dashboardScrollArea");
+    auto *telemetryScroll =
+        window.findChild<QScrollArea *>("telemetryScrollArea");
+    auto *printerScroll =
+        window.findChild<QScrollArea *>("printerSupportScrollArea");
+    QVERIFY(dashboardScroll);
+    QVERIFY(telemetryScroll);
+    QVERIFY(printerScroll);
+    QVERIFY(dashboardScroll->verticalScrollBar()->maximum() > 0);
+
+    dashboardScroll->verticalScrollBar()->setValue(
+        dashboardScroll->verticalScrollBar()->maximum());
+    QCoreApplication::processEvents();
+    auto *lastCard = window.findChild<QPushButton *>("dashboardTelemetryCard");
+    QVERIFY(lastCard);
+    const QRect cardRect(lastCard->mapTo(dashboardScroll->viewport(),
+                                         QPoint(0, 0)),
+                         lastCard->size());
+    QVERIFY(cardRect.intersects(dashboardScroll->viewport()->rect()));
+}
+
 void MainWindowIntegrationTest::updateScreenShowsNouveauRiskAndRoControlAction()
 {
     qputenv("RO_ASSIST_TEST_LSPCI",
@@ -280,7 +313,7 @@ void MainWindowIntegrationTest::updateScreenShowsNouveauRiskAndRoControlAction()
         window.findChild<QPushButton *>("openRoControlButton");
     QVERIFY(riskLabel);
     QVERIFY(roControlButton);
-    QVERIFY(riskLabel->text().contains("NVIDIA GPU with nouveau"));
+    QTRY_VERIFY(riskLabel->text().contains("NVIDIA GPU with nouveau"));
     QVERIFY(!roControlButton->isHidden());
     QVERIFY(roControlButton->isEnabled());
     QCOMPARE(roControlButton->text(), QString("Open ro Control"));
