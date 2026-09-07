@@ -1,105 +1,45 @@
 # ro-Assist
 
-Dil: Turkce | [English](../README.md)
+**Ro-ASD için ilk kurulum, bakım ve güvenli güncelleme merkezi.**
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Fedora_44_KDE-green.svg)
-![License](https://img.shields.io/badge/license-GPLv3+-success.svg)
+ro-Assist, Fedora 44 KDE Plasma tabanlı Ro-ASD kurulumlarında ilk açılış
+rehberini, rutin güncellemeleri, isteğe bağlı hazırlık araçlarını ve proje
+kaynaklarını tek bir yerel masaüstü akışında birleştiren Qt 6 uygulamasıdır.
 
-ro-Assist, Fedora 44 KDE Plasma tabanli Ro-ASD sistemleri icin gelistirilmis Qt6 tabanli ilk kurulum ve bakim merkezidir. Kontrollu guncelleme akislari, onerilen hazirlik adimlari ve proje kaynaklari sunar; donanim ve surucu durumu icin ro Control'e yonlendirir.
+---
 
-## Ozellikler
+## Temel Yetenekler
 
-- DNF, Flatpak ve Snap guncellemelerini kontrollu adimlar halinde log ve ilerleme ile yurutur.
-- NVIDIA donanimi nouveau ile calisirken, dusuk disk alani veya bekleyen yeniden baslatma gibi bilinen riskleri guncelleme oncesi gosterir.
-- Donanim, GPU ve surucu durumu icin surucu kurmadan ro Control'e guvenli yonlendirme yapar.
-- Fedora 44 KDE Plasma hedefi icin uyarlanmis Qt6 tabanli masaustu arayuzu.
-- Fedora odakli paket yonetimi is akislarina entegrasyon.
-- Ilk acilis hosgeldin akisi ve sonraki calistirmalar icin sayfa tabanli dashboard.
-- GameMode, MangoHud ve Vulkan araclari icin temel oyun hazirligi.
-- `ro-printer-support` paketi uzerinden istege bagli yazici ve tarayici destegi.
-- KDE icinde calisirken Breeze stil ve tema ikon entegrasyonu.
+- DNF güncellemelerini Polkit üzerinden yürütür; Flatpak ve Snap adımlarını
+  yalnızca ilgili araçlar kuruluysa ekler.
+- Güncelleme öncesinde düşük disk alanını, bekleyen yeniden başlatmayı ve
+  NVIDIA kart üzerinde etkin `nouveau` modülünü kontrol eder.
+- İlk açılışta rehber akışını gösterir; daha sonraki açılışlarda responsive
+  bakım panelini açar.
+- GameMode, MangoHud ve Vulkan araçlarını; ayrıca `ro-printer-support` ile
+  isteğe bağlı yazıcı/tarayıcı desteğini sunar.
+- Telemetri tercihini yalnızca yerelde saklar. 0.2.1 sürümü telemetri verisi
+  göndermez.
+- Grafik sürücüsü kurmaz veya kaldırmaz; riskli grafik durumlarında donanım ve
+  sürücü yönetimi için [ro-Control](https://github.com/Project-Ro-ASD/ro-Control)
+  uygulamasına yönlendirir.
 
-## Teknoloji Yigini
+## Komut Satırı Hızlı Başvuru
 
-- C++17
-- Qt6 (`Widgets`, `Network`)
-- CMake (CPack RPM destegi ile)
+| Komut | Açıklama |
+| :--- | :--- |
+| `ro-assist --help` | Kullanılabilir seçenekleri listeler. |
+| `ro-assist --version` | Uygulama sürümünü gösterir. |
+| `ro-assist --autostart` | Hoş geldin akışını yalnızca henüz tamamlanmadıysa başlatır. |
+| `ro-assist --reset-welcome` | Hoş geldin tamamlanma kaydını siler. |
+| `ro-assist --smoke-test` | Arayüzü oluşturur ve çıkar; paketleme doğrulaması içindir. |
 
-## Gereksinimler
+## Belgeler
 
-- CMake 3.16+
-- C++17 uyumlu derleyici (`gcc` veya `clang`)
-- Qt6 6.6+ gelistirme paketleri
+- [Kurulum ve sistem entegrasyonu](INSTALL.md)
+- [Derleme ve test](BUILD.md)
+- [Mimari ve bakım akışı](ARCHITECTURE.md)
+- [Yapılandırma başvurusu](CONFIGURATION.md)
 
-Fedora 44 ornegi:
-
-```bash
-sudo dnf install cmake gcc-c++ qt6-qtbase-devel
-```
-
-## Derleme
-
-```bash
-cmake --preset default
-cmake --build --preset default
-```
-
-## Test
-
-```bash
-ctest --preset default
-```
-
-## Calistirma
-
-```bash
-./build/ninja/ro-assist
-```
-
-## Paketleme
-
-RPM metaverisi hem `CMakeLists.txt` (CPack) hem de `packaging/rpm/ro-assist.spec` dosyasinda tanimlidir.
-
-GitHub Actions, RPM paketlerini Fedora 44 uzerinde derler ve dogrular. Standart RPM dosya adlarini korur; iki mimari icin ikili RPM ve tek bir kaynak RPM (SRPM) uretir:
-- `ro-assist-x64`
-- `ro-assist-arm64`
-
-RPM workflow su kontrolleri de zorunlu olarak yapar:
-- uretilen repo uzerinden `dnf install ro-assist`
-- `/usr/bin/ro-assist` launcher ve `/usr/libexec/ro-assist/ro-assist` binary dogrulamasi
-- `ldd -r /usr/libexec/ro-assist/ro-assist`
-- ozel Qt ABI (`PRIVATE_API`) bagimlilik denetimi
-
-Paket, Fedora 44 KDE uzerinde ilk oturum acilisinda `ro-assist --autostart` calistiran bir autostart girdisi de icerir. Uygulama bu acilisi yalnizca ilk giriste gosterir.
-
-## Proje Yapisi
-
-```text
-.
-|- docs/
-|- include/roassist/
-|- packaging/linux/
-|- packaging/rpm/
-|- resources/icons/
-|- src/
-|- tests/
-|- CMakeLists.txt
-`- .github/
-```
-
-## Katki
-
-Katkilar memnuniyetle karsilanir. Pull request acmadan once `CONTRIBUTING.md` dosyasini inceleyin.
-
-## Davranis Kurallari
-
-Bu proje `CODE_OF_CONDUCT.md` dosyasindaki davranis kurallarini takip eder.
-
-## Guvenlik
-
-Guvenlik bildirimi sureci `SECURITY.md` dosyasinda tanimlidir.
-
-## Lisans
-
-Bu proje GPL-3.0-or-later ile lisanslanmistir. Ayrintilar icin `LICENSE` dosyasina bakin.
+Detaylı teknik belgeler İngilizcedir; uygulama Türkçe, İngilizce, İspanyolca,
+Almanca ve Fransızca arayüz metinleri sunar.

@@ -16,7 +16,7 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: rpm-${{ github.workflow }}-${{ github.ref }}
@@ -139,6 +139,8 @@ jobs:
     needs: validate-rpm
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: write
 
     steps:
       - name: Download x64 RPM artifact

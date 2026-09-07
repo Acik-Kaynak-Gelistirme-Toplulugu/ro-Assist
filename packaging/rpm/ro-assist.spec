@@ -1,8 +1,8 @@
 %global debug_package %{nil}
 
 Name:           ro-assist
-Version:        0.2.0
-Release:        2%{?dist}
+Version:        0.2.1
+Release:        1%{?dist}
 Summary:        First-run and maintenance center for Ro-ASD systems
 ExclusiveArch:  x86_64 aarch64
 
@@ -27,6 +27,9 @@ ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides us
 %cmake
 %cmake_build
 
+%check
+ctest --test-dir build --output-on-failure
+
 %install
 %cmake_install
 
@@ -39,6 +42,11 @@ ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides us
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
+* Sun Sep 07 2026 Project Ro-ASD <contact@roasd.org> - 0.2.1-1
+- Improve responsive layouts and the dark-theme About panel.
+- Run system-risk discovery asynchronously to keep the interface responsive.
+- Bundle the Ro-ASD dashboard logo and harden package/CI validation.
+
 * Fri Aug 28 2026 Project Ro-ASD <contact@roasd.org> - 0.2.0-2
 - Rebuild for Fedora 44 and publish canonical binary and source RPM artifacts.
 

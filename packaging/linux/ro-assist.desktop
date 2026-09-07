@@ -11,6 +11,6 @@ Comment[es]=Centro de primer inicio, actualización y mantenimiento de Ro-ASD
 Exec=env QT_QPA_PLATFORM=xcb QT_XCB_GL_INTEGRATION=xcb_glx ro-assist
 Icon=ro-assist
 Terminal=false
-Categories=System;Utility;Qt;KDE;
+Categories=System;Qt;KDE;
 Keywords=fedora;ro-asd;update;dnf;flatpak;snap;kde;maintenance;welcome;
 StartupNotify=true
