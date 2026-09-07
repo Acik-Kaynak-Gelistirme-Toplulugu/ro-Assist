@@ -10,6 +10,9 @@
 namespace {
 
 constexpr qint64 LOW_DISK_SPACE_BYTES = 2LL * 1024 * 1024 * 1024;
+constexpr auto PKEXEC_PATH = "/usr/bin/pkexec";
+constexpr auto DNF_PATH = "/usr/bin/dnf";
+constexpr auto SNAP_PATH = "/usr/bin/snap";
 
 bool envFlagEnabled(const char *name) {
   const QByteArray value = qgetenv(name).trimmed().toLower();
@@ -21,7 +24,21 @@ QString envString(const char *name) {
 }
 
 QString runAndReadAll(const QString &program, const QStringList &arguments,
-                      int timeoutMs = 1500) {
+                      int timeoutMs = 1500);
+
+QString inspectionOutput(const char *testVariable, const QString &program,
+                         const QStringList &arguments = {}) {
+#ifdef RO_ASSIST_TESTING
+  if (qEnvironmentVariableIsSet(testVariable))
+    return envString(testVariable);
+#else
+  Q_UNUSED(testVariable)
+#endif
+  return runAndReadAll(program, arguments);
+}
+
+QString runAndReadAll(const QString &program, const QStringList &arguments,
+                      int timeoutMs) {
   QProcess process;
   process.start(program, arguments);
   if (!process.waitForFinished(timeoutMs)) {
@@ -56,8 +73,10 @@ bool SystemUpdateService::commandExists(const QString &command) {
   const QByteArray overrideName =
       "RO_ASSIST_TEST_" + command.toUtf8().toUpper().replace('-', '_') +
       "_AVAILABLE";
+#ifdef RO_ASSIST_TESTING
   if (!qgetenv(overrideName.constData()).isEmpty())
     return envFlagEnabled(overrideName.constData());
+#endif
 
   return !QStandardPaths::findExecutable(command).isEmpty();
 }
@@ -69,8 +88,8 @@ UpdatePlan SystemUpdateService::buildUpdatePlan(bool flatpakAvailable,
   plan.snapAvailable = snapAvailable;
   plan.steps = {
       {UpdateStepKind::SystemPackages,
-       {QStringLiteral("System packages"), QStringLiteral("pkexec"),
-        {QStringLiteral("dnf"), QStringLiteral("upgrade"),
+       {QStringLiteral("System packages"), QString::fromLatin1(PKEXEC_PATH),
+        {QString::fromLatin1(DNF_PATH), QStringLiteral("upgrade"),
          QStringLiteral("-y")}},
        true},
       {UpdateStepKind::FlatpakApplications,
@@ -78,8 +97,8 @@ UpdatePlan SystemUpdateService::buildUpdatePlan(bool flatpakAvailable,
         {QStringLiteral("update"), QStringLiteral("-y")}},
        flatpakAvailable},
       {UpdateStepKind::SnapPackages,
-       {QStringLiteral("Snap packages"), QStringLiteral("pkexec"),
-        {QStringLiteral("snap"), QStringLiteral("refresh")}},
+       {QStringLiteral("Snap packages"), QString::fromLatin1(PKEXEC_PATH),
+        {QString::fromLatin1(SNAP_PATH), QStringLiteral("refresh")}},
        snapAvailable},
   };
   return plan;
@@ -105,23 +124,23 @@ QString SystemUpdateService::commandPreview(const ProcessCommand &command) {
 SystemRiskSnapshot SystemRiskService::collect() {
   SystemRiskSnapshot snapshot;
 
-  const QString lspciOutput =
-      qEnvironmentVariableIsSet("RO_ASSIST_TEST_LSPCI")
-          ? envString("RO_ASSIST_TEST_LSPCI")
-          : runAndReadAll(QStringLiteral("lspci"), {});
-  const QString lsmodOutput =
-      qEnvironmentVariableIsSet("RO_ASSIST_TEST_LSMOD")
-          ? envString("RO_ASSIST_TEST_LSMOD")
-          : runAndReadAll(QStringLiteral("lsmod"), {});
+  const QString lspciOutput = inspectionOutput(
+      "RO_ASSIST_TEST_LSPCI", QStringLiteral("/usr/bin/lspci"));
+  const QString lsmodOutput = inspectionOutput(
+      "RO_ASSIST_TEST_LSMOD", QStringLiteral("/usr/bin/lsmod"));
 
   snapshot.nvidiaGpuDetected = detectsNvidiaGpu(lspciOutput);
   snapshot.nouveauLoaded = detectsNouveauModule(lsmodOutput);
   snapshot.roControlAvailable = RoControlIntegration::isAvailable();
   snapshot.sessionType = qEnvironmentVariable("XDG_SESSION_TYPE");
 
+#ifdef RO_ASSIST_TESTING
   if (qEnvironmentVariableIsSet("RO_ASSIST_TEST_REBOOT_REQUIRED")) {
     snapshot.rebootRequired = envFlagEnabled("RO_ASSIST_TEST_REBOOT_REQUIRED");
   } else if (QFile::exists(QStringLiteral("/run/reboot-required")) ||
+#else
+  if (QFile::exists(QStringLiteral("/run/reboot-required")) ||
+#endif
              QFile::exists(QStringLiteral("/var/run/reboot-required"))) {
     snapshot.rebootRequired = true;
   } else if (SystemUpdateService::commandExists(QStringLiteral("needs-restarting"))) {
@@ -183,8 +202,10 @@ QString RoControlIntegration::executableName() {
 }
 
 bool RoControlIntegration::isAvailable() {
+#ifdef RO_ASSIST_TESTING
   if (qEnvironmentVariableIsSet("RO_ASSIST_TEST_RO_CONTROL_AVAILABLE"))
     return envFlagEnabled("RO_ASSIST_TEST_RO_CONTROL_AVAILABLE");
+#endif
   return SystemUpdateService::commandExists(executableName());
 }
 

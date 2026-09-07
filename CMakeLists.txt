@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(ro-assist VERSION 0.2.0 LANGUAGES CXX)
+project(ro-assist VERSION 0.2.1 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 
 enable_testing()
 
-find_package(Qt6 6.6 REQUIRED COMPONENTS Widgets Network Test)
+find_package(Qt6 6.6 REQUIRED COMPONENTS Widgets Network Test Concurrent)
 find_package(Qt6 6.6 QUIET COMPONENTS LinguistTools)
 
 set(RO_ASSIST_SOURCES
@@ -30,7 +30,7 @@ set(RO_ASSIST_SOURCES
 add_executable(ro-assist ${RO_ASSIST_SOURCES})
 target_include_directories(ro-assist PRIVATE include)
 target_compile_definitions(ro-assist PRIVATE APP_VERSION="${PROJECT_VERSION}")
-target_link_libraries(ro-assist PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(ro-assist PRIVATE Qt6::Widgets Qt6::Network Qt6::Concurrent)
 
 # Qt Linguist is only needed while generating .qm files. The application also
 # ships its runtime text catalogue, so local development remains buildable on
@@ -81,8 +81,8 @@ if(TARGET Qt6::lrelease)
     )
 endif()
 target_include_directories(ro-assist-ui-tests PRIVATE include)
-target_compile_definitions(ro-assist-ui-tests PRIVATE APP_VERSION="${PROJECT_VERSION}")
-target_link_libraries(ro-assist-ui-tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network)
+target_compile_definitions(ro-assist-ui-tests PRIVATE APP_VERSION="${PROJECT_VERSION}" RO_ASSIST_TESTING)
+target_link_libraries(ro-assist-ui-tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Network Qt6::Concurrent)
 
 add_executable(ro-assist-unit-tests
     include/roassist/system_services.h
@@ -106,8 +106,8 @@ set_tests_properties(ro-assist-smoke-test PROPERTIES
 
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "ro-assist")
-set(CPACK_PACKAGE_VERSION "0.2.0")
-set(CPACK_PACKAGE_RELEASE 2)
+set(CPACK_PACKAGE_VERSION "0.2.1")
+set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Ebubekir Bulut <ebubekir.bulut99@gmail.com>")
 set(CPACK_PACKAGE_VENDOR "Project Ro-ASD")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Project-Ro-ASD/ro-Assist")

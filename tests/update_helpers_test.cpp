@@ -26,12 +26,14 @@ void UpdateHelpersTest::buildsSplitSystemUpdatePlan()
         RoAssist::SystemUpdateService::buildUpdateCommands(true, true);
 
     QCOMPARE(commands.size(), 3);
-    QCOMPARE(commands.at(0).program, QString("pkexec"));
-    QCOMPARE(commands.at(0).arguments, QStringList({"dnf", "upgrade", "-y"}));
+    QCOMPARE(commands.at(0).program, QString("/usr/bin/pkexec"));
+    QCOMPARE(commands.at(0).arguments,
+             QStringList({"/usr/bin/dnf", "upgrade", "-y"}));
     QCOMPARE(commands.at(1).program, QString("flatpak"));
     QCOMPARE(commands.at(1).arguments, QStringList({"update", "-y"}));
-    QCOMPARE(commands.at(2).program, QString("pkexec"));
-    QCOMPARE(commands.at(2).arguments, QStringList({"snap", "refresh"}));
+    QCOMPARE(commands.at(2).program, QString("/usr/bin/pkexec"));
+    QCOMPARE(commands.at(2).arguments,
+             QStringList({"/usr/bin/snap", "refresh"}));
     QVERIFY(!RoAssist::SystemUpdateService::commandPreview(commands.at(0))
                  .contains("sh -c"));
 
