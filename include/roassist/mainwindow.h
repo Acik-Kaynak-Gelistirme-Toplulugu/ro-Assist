@@ -88,6 +88,7 @@ private:
     void createDashboard();
     void updateUiTextAndImages();
     void detectSystemLanguageAndTheme();
+    void applySystemLanguage();
     void appendLog(const QString &text, const QString &color = "#666666");
     void appendPrinterLog(const QString &text, const QString &color = "#666666");
     void refreshMaintenanceStatus();
@@ -106,6 +107,7 @@ private:
     QString currentLanguageCode() const;
 
 protected:
+    void changeEvent(QEvent *event) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:

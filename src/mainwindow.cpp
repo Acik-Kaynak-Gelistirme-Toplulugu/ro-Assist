@@ -81,6 +81,25 @@ QString desktopLocaleName() {
   return {};
 }
 
+MainWindow::Language languageForLocaleName(const QString &localeName) {
+  const QString language = localeName.section(QLatin1Char('_'), 0, 0)
+                               .section(QLatin1Char('-'), 0, 0)
+                               .section(QLatin1Char('.'), 0, 0)
+                               .toLower();
+  if (language == QStringLiteral("tr"))
+    return MainWindow::TR;
+  if (language == QStringLiteral("es"))
+    return MainWindow::ES;
+  if (language == QStringLiteral("de"))
+    return MainWindow::DE;
+  if (language == QStringLiteral("fr"))
+    return MainWindow::FR;
+
+  // English is the complete fallback catalogue. Never present a partially
+  // translated interface when the desktop language is not shipped yet.
+  return MainWindow::EN;
+}
+
 int boundedTelemetryLevel(int level) {
   if (level < 0)
     return 0;
@@ -742,17 +761,7 @@ QString MainWindow::currentLanguageCode() const {
 }
 
 void MainWindow::detectSystemLanguageAndTheme() {
-  const QString localeName = desktopLocaleName().toLower();
-  if (localeName.startsWith(QStringLiteral("tr")))
-    currentLang = TR;
-  else if (localeName.startsWith(QStringLiteral("es")))
-    currentLang = ES;
-  else if (localeName.startsWith(QStringLiteral("de")))
-    currentLang = DE;
-  else if (localeName.startsWith(QStringLiteral("fr")))
-    currentLang = FR;
-  else
-    currentLang = EN;
+  currentLang = languageForLocaleName(desktopLocaleName());
 
   currentTheme = Light;
 
@@ -768,6 +777,15 @@ void MainWindow::detectSystemLanguageAndTheme() {
     currentTheme = Dark;
   }
 #endif
+}
+
+void MainWindow::applySystemLanguage() {
+  const Language detectedLanguage = languageForLocaleName(desktopLocaleName());
+  if (detectedLanguage == currentLang)
+    return;
+
+  currentLang = detectedLanguage;
+  updateUiTextAndImages();
 }
 
 void MainWindow::setupUi() {
@@ -2120,6 +2138,12 @@ void MainWindow::setTelemetryLevel(int level) {
                     telemetryLevelSettingName(boundedLevel));
   settings.sync();
   updateUiTextAndImages();
+}
+
+void MainWindow::changeEvent(QEvent *event) {
+  QMainWindow::changeEvent(event);
+  if (event->type() == QEvent::LocaleChange)
+    applySystemLanguage();
 }
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event) {

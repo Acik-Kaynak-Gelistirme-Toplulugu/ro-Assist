@@ -15,6 +15,7 @@ private slots:
     void initTestCase();
     void init();
     void languageSwitchUpdatesPrimaryTexts();
+    void systemLocaleSelectsSupportedLanguageAndFallsBackToEnglish();
     void networkIndicatorFollowsConnectivity();
     void firstRunRequiresOrderedCompletion();
     void welcomePageCanOpenAndReturnToItsCurrentStep();
@@ -89,6 +90,27 @@ void MainWindowIntegrationTest::languageSwitchUpdatesPrimaryTexts()
                               Q_ARG(QAction *, &french));
     QCOMPARE(languageButton->text(), QString("🇫🇷 Français"));
     QCOMPARE(updateButton->text(), QString("Mettre le système à jour"));
+}
+
+void MainWindowIntegrationTest::systemLocaleSelectsSupportedLanguageAndFallsBackToEnglish()
+{
+    const QByteArray previousLanguage = qgetenv("LANG");
+    qputenv("LANG", "tr_TR.UTF-8");
+
+    MainWindow window;
+    auto *languageButton = window.findChild<QPushButton *>("languageButton");
+    QVERIFY(languageButton);
+    QCOMPARE(languageButton->text(), QString("🇹🇷 Türkçe"));
+
+    qputenv("LANG", "zh_CN.UTF-8");
+    QEvent localeChange(QEvent::LocaleChange);
+    QCoreApplication::sendEvent(&window, &localeChange);
+    QCOMPARE(languageButton->text(), QString("🇬🇧 English"));
+
+    if (previousLanguage.isEmpty())
+        qunsetenv("LANG");
+    else
+        qputenv("LANG", previousLanguage);
 }
 
 void MainWindowIntegrationTest::networkIndicatorFollowsConnectivity()

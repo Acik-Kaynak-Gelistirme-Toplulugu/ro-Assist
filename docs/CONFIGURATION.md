@@ -39,6 +39,19 @@ rm ~/.config/Project-Ro-ASD/ro-assist.conf
 
 The next application launch recreates missing keys with their built-in defaults.
 
+## Desktop Language
+
+At startup ro-Assist reads the active desktop locale (`LANGUAGE`, `LC_ALL`,
+`LC_MESSAGES`, `LANG`, then the desktop locale configuration) and selects its
+matching complete catalogue. It also applies Qt `LocaleChange` events while it
+is running.
+
+The bundled interface currently has complete Turkish, English, Spanish,
+German, and French catalogues. Any other locale—for example `zh_CN`, `ja_JP`,
+or `pt_BR`—uses English deliberately. This prevents a partially translated UI;
+supporting another language requires a complete reviewable catalogue for every
+user-visible string, not machine-generated fallback text.
+
 ## Environment Variables Used by Tests
 
 The following variables are test hooks, not user configuration. They allow the
