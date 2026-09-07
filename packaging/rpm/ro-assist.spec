@@ -28,7 +28,7 @@ ro-Assist is a first-run and maintenance center for Ro-ASD systems. It guides us
 %cmake_build
 
 %check
-ctest --test-dir build --output-on-failure
+ctest --test-dir redhat-linux-build --output-on-failure
 
 %install
 %cmake_install
@@ -42,7 +42,7 @@ ctest --test-dir build --output-on-failure
 %{_datadir}/icons/hicolor/scalable/apps/ro-assist.svg
 
 %changelog
-* Sun Sep 07 2026 Project Ro-ASD <contact@roasd.org> - 0.2.1-1
+* Mon Sep 07 2026 Project Ro-ASD <contact@roasd.org> - 0.2.1-1
 - Improve responsive layouts and the dark-theme About panel.
 - Run system-risk discovery asynchronously to keep the interface responsive.
 - Bundle the Ro-ASD dashboard logo and harden package/CI validation.
